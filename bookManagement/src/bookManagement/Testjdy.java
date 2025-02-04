@@ -1,10 +1,11 @@
 package bookManagement;
 
-public class testt {
+public class Testjdy {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		//asdasdasd
+		int a = 11;
+		int b = 2323;
 	}
 
 }

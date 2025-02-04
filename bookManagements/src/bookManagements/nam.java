@@ -1,10 +1,10 @@
-package bookManagement;
 
-public class testt {
+public class nam {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		//asdasdasd
+		//aa
+		int a;
 	}
 
 }
