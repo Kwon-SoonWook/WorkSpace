@@ -3,7 +3,7 @@ import java.awt.*;
 import java.sql.*;
 import java.awt.event.*;
 public class BookManagement extends Frame implements ActionListener {
-
+	//DB연동 관련
 	PreparedStatement ps;
 	ResultSet rs;
 	String sql;
