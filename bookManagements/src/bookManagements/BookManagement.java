@@ -89,17 +89,17 @@ public class BookManagement extends Frame implements ActionListener {
 			this.validate();
 		}else if(obj == book_add) {
 			this.remove(p_main);
-			bookAdd();
+			bookAddView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == book_lend) {
 			this.remove(p_main);
-			bookLend();
+			bookLendView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == search_info) {
 			this.remove(p_main);
-			searchInfo();
+			searchInfoView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == delay_info) {
@@ -178,7 +178,7 @@ public class BookManagement extends Frame implements ActionListener {
 	
 	
 	//책 신규 등록 및 삭제 화면 메서드
-	public void bookAdd() {
+	public void bookAddView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_book_add_title = new Label("책 신규등록 및 삭제", Label.CENTER);
 		p_main.add(lb_book_add_title, "North");
@@ -211,7 +211,7 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//책 대여 및 반납 화면 메서드
-	public void bookLend() {
+	public void bookLendView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_book_lend_title = new Label("책 대여 및 반납", Label.CENTER);
 		p_main.add(lb_book_lend_title, "North");
@@ -236,7 +236,7 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//검색하기 화면 메서드
-	public void searchInfo() {
+	public void searchInfoView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_search_info_title = new Label("검색하기", Label.CENTER);
 		p_main.add(lb_search_info_title, "North");
@@ -250,11 +250,11 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//연체정보 화면 메서드
-	public void delayInfo() {
+	public void delayInfoView() {
 		
 	}
 	
-	public void topTen() {
+	public void topTenView() {
 		
 	}
 	
