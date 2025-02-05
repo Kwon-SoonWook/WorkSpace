@@ -243,11 +243,14 @@ public class BookManagement extends Frame implements ActionListener {
 		
 		Panel p_center_temp = new Panel();
 		bt_search_info_uname = new Button("사람 이름으로 검색");
+		
 		bt_search_info_bname = new Button("책 이름으로 검색");
 		p_center_temp.add(bt_search_info_uname);
 		p_center_temp.add(bt_search_info_bname);
 		p_main.add(p_center_temp, "Center");
 	}
+	
+	
 	
 	//연체정보 화면 메서드
 	public void delayInfoView() {
