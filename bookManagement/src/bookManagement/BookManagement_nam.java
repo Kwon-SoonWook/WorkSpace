@@ -40,7 +40,6 @@ public class BookManagement_nam extends Frame implements ActionListener {
 	
 	//연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
-	TextField tf_delay_info_bname;
 	Panel p_main_c_n; //남광준
 	
 	
