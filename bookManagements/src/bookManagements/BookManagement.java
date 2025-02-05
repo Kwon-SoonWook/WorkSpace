@@ -33,13 +33,17 @@ public class BookManagement extends Frame implements ActionListener {
 	TextField tf_book_lend_pid, tf_book_lend_bid;
 	Button bt_book_lend, bt_book_return;
 	
-	//검색하기 
+	//검색하기
 	Label lb_search_info_title;
-	Button bt_search_info_uname, bt_search_info_bname;
+	CheckboxGroup cg_options;
+	Checkbox cb_book, cb_person;
+	Button bt_search_info;
+	TextField tf_search_info_key;
+	Panel p_show_result;
 	
 	//연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
-	TextField tf_delay_info_bname;
+	Panel p_main_c_n; //남광준
 	
 	
 	
@@ -103,7 +107,16 @@ public class BookManagement extends Frame implements ActionListener {
 			this.add(p_main);
 			this.validate();
 		}else if(obj == delay_info) {
-			
+			this.remove(p_main);
+			delayInfoView();
+			this.add(p_main);
+			this.validate();
+			try {
+				delayInfo();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}else if(obj == book_topten) {
 			
 		}else if(obj == close) {
@@ -139,6 +152,13 @@ public class BookManagement extends Frame implements ActionListener {
 		}else if(obj == bt_book_delete) {
 			try {
 				bookDelete();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if (obj == bt_search_info) {
+			try {
+				searchInfo();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -416,17 +436,135 @@ public class BookManagement extends Frame implements ActionListener {
 		lb_search_info_title = new Label("검색하기", Label.CENTER);
 		p_main.add(lb_search_info_title, "North");
 		
-		Panel p_center_temp = new Panel();
-		bt_search_info_uname = new Button("사람 이름으로 검색");
-		bt_search_info_bname = new Button("책 이름으로 검색");
-		p_center_temp.add(bt_search_info_uname);
-		p_center_temp.add(bt_search_info_bname);
+		Panel p_center_temp = new Panel(new BorderLayout(5, 5));
+		Panel p_top = new Panel(new FlowLayout(FlowLayout.CENTER));
+		
+		Panel p_tf_and_bt = new Panel(new GridLayout(1, 4, 5, 5));
+		cg_options = new CheckboxGroup();
+		cb_book = new Checkbox("제목으로 책 찾기", cg_options, true);
+		cb_person = new Checkbox("이름으로 사람 찾기", cg_options, false);
+		tf_search_info_key = new TextField();
+		bt_search_info = new Button("검색");
+		p_tf_and_bt.add(cb_book);
+		p_tf_and_bt.add(cb_person);
+		p_tf_and_bt.add(tf_search_info_key);
+		p_tf_and_bt.add(bt_search_info);
+		p_top.add(p_tf_and_bt);
+		p_center_temp.add(p_top, "North");
+		
+		Panel p_show_result_temp = new Panel(new BorderLayout(5, 5));
+		
+		p_show_result = new Panel(new GridLayout(0, 5, 5, 5));
+		p_show_result_temp.add(p_show_result, "North");
+		
+		p_center_temp.add(p_show_result_temp, "Center");
+		
 		p_main.add(p_center_temp, "Center");
+		
+		bt_search_info.addActionListener(this);
+	}
+	
+	//검색하기 메서드
+	public void searchInfo() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		
+		String key = tf_search_info_key.getText();
+		
+		if (cb_book.getState()) {
+			ps = con.prepareStatement("SELECT * FROM book WHERE book_name LIKE ?");
+			ps.setString(1, "%" + key + "%");
+			rs = ps.executeQuery();
+			
+			p_show_result.removeAll();
+			
+			p_show_result.add(new Label("book_id"));
+			p_show_result.add(new Label("book_name"));
+			p_show_result.add(new Label("author"));
+			p_show_result.add(new Label("publisher"));
+			p_show_result.add(new Label("lend_count"));
+			
+			while (rs.next()) {
+				p_show_result.add(new Label(Integer.toString(rs.getInt("book_id"))));
+				p_show_result.add(new Label(rs.getString("book_name")));
+				p_show_result.add(new Label(rs.getString("author")));
+				p_show_result.add(new Label(rs.getString("publisher")));
+				p_show_result.add(new Label(Integer.toString(rs.getInt("lend_count"))));
+			}
+		}
+		else if (cb_person.getState()){
+			ps = con.prepareStatement("SELECT * FROM person WHERE person_name LIKE ?");
+			ps.setString(1, "%" + key + "%");
+			rs = ps.executeQuery();
+			
+			p_show_result.removeAll();
+			
+			p_show_result.add(new Label("person_id"));
+			p_show_result.add(new Label("person_name"));
+			p_show_result.add(new Label("tel"));
+			p_show_result.add(new Label("addr"));
+			p_show_result.add(new Label("birth"));
+			
+			while (rs.next()) {
+				p_show_result.add(new Label(rs.getString("person_id")));
+				p_show_result.add(new Label(rs.getString("person_name")));
+				p_show_result.add(new Label(rs.getString("tel")));
+				p_show_result.add(new Label(rs.getString("addr")));
+				p_show_result.add(new Label(rs.getString("birth")));
+			}
+		}
+		
+		p_show_result.revalidate();
+		rs.close();
+		ps.close();
+		con.close();
 	}
 	
 	//연체정보 화면 메서드
 	public void delayInfoView() {
+		p_main = new Panel(new BorderLayout(10,10));
+		lb_delay_info_title = new Label("연체 회원 정보",Label.CENTER);
+		p_main.add(lb_delay_info_title,"North");
+		Panel p_main_c = new Panel(new BorderLayout(5,5));
 		
+		p_main.add(p_main_c,"Center");
+		p_main_c_n = new Panel(new GridLayout(0,4,5,5));
+		p_main_c_n.add(new Label("record_id"));
+		p_main_c_n.add(new Label("book_id"));
+		p_main_c_n.add(new Label("person_id"));
+		p_main_c_n.add(new Label("event_time"));
+		
+		p_main_c.add(p_main_c_n,"North");
+	}
+	
+	//연체정보 메서드
+	public void delayInfo() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time\r\n"
+				+ "from records"+" where event_time+14>systimestamp";//대여한지 2주 지난 회원 확인
+		ps = con.prepareStatement(sql);
+		rs=ps.executeQuery();
+		
+		while(rs.next()) {
+			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("records_id"))));
+			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("book_id"))));
+			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("person_id"))));
+			p_main_c_n.add(new Label(rs.getString("event_time")));
+		}
+		
+		p_main_c_n.revalidate();
+		p_main_c_n.repaint();  
+		rs.close();
+		ps.close();
+		con.close();
 	}
 	
 	public void topTenView() {
@@ -438,5 +576,4 @@ public class BookManagement extends Frame implements ActionListener {
 		bm.setSize(800,800);
 		bm.setVisible(true);
 	}
-
 }
