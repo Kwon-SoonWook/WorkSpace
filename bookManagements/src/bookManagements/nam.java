@@ -5,6 +5,8 @@ public class nam {
 		// TODO Auto-generated method stub
 		//aa
 		int a;
+		int b;
+		int c;
 	}
 
 }
