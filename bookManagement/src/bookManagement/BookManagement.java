@@ -1,7 +1,14 @@
 package bookManagement;
 import java.awt.*;
+import java.sql.*;
 import java.awt.event.*;
 public class BookManagement extends Frame implements ActionListener {
+	//DB연동
+	PreparedStatement ps;
+	ResultSet rs;
+	String sql;
+	
+
 	//공통
 	Menu menu;
 	MenuBar menubar;
@@ -35,7 +42,8 @@ public class BookManagement extends Frame implements ActionListener {
 	TextField tf_delay_info_bname;
 	
 	
-	public BookManagement() {
+	
+	public BookManagement() throws Exception{
 		p_main = new Panel(new BorderLayout());
 		lb_main = new Label("도서관리 프로그램 v3.0", Label.CENTER);
 		p_main.add(lb_main);
@@ -76,22 +84,22 @@ public class BookManagement extends Frame implements ActionListener {
 		Object obj = e.getSource();
 		if(obj == user_add) {
 			this.remove(p_main);
-			userAdd();
+			userAddView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == book_add) {
 			this.remove(p_main);
-			bookAdd();
+			bookAddView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == book_lend) {
 			this.remove(p_main);
-			bookLend();
+			bookLendView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == search_info) {
 			this.remove(p_main);
-			searchInfo();
+			searchInfoView();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == delay_info) {
@@ -100,11 +108,18 @@ public class BookManagement extends Frame implements ActionListener {
 			
 		}else if(obj == close) {
 			System.exit(0);
+		}else if(obj == bt_user_add) {
+			try {
+				userAdd();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		
 	}
 	//사용자 등록 화면 메서드
-	public void userAdd() {
+	public void userAddView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_user_add_title = new Label("사용자 등록", Label.CENTER);
 		p_main.add(lb_user_add_title, "North");
@@ -140,10 +155,30 @@ public class BookManagement extends Frame implements ActionListener {
 		p_south_south.add(bt_user_add);
 		p_south_temp.add(p_south_south, "South");
 		p_main.add(p_south_temp, "South");
+		
+		bt_user_add.addActionListener(this);
 	}
 	
+	public void userAdd() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		sql = "insert into person (person_name,tel,addr,birth) values(?,?,?,?)";
+		ps = con.prepareStatement(sql);
+		ps.setString(1, tf_user_add_name.getText());
+		ps.setString(2, tf_user_add_tel.getText());
+		ps.setString(3, tf_user_add_addr.getText());
+		ps.setString(4, tf_user_add_birth.getText());
+		ps.executeUpdate();
+		
+		lb_user_add_msg.setText("등록이 완료되었습니다.");
+	}
+	
+	
 	//책 신규 등록 및 삭제 화면 메서드
-	public void bookAdd() {
+	public void bookAddView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_book_add_title = new Label("책 신규등록 및 삭제", Label.CENTER);
 		p_main.add(lb_book_add_title, "North");
@@ -176,7 +211,7 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//책 대여 및 반납 화면 메서드
-	public void bookLend() {
+	public void bookLendView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_book_lend_title = new Label("책 대여 및 반납", Label.CENTER);
 		p_main.add(lb_book_lend_title, "North");
@@ -201,7 +236,7 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//검색하기 화면 메서드
-	public void searchInfo() {
+	public void searchInfoView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_search_info_title = new Label("검색하기", Label.CENTER);
 		p_main.add(lb_search_info_title, "North");
@@ -215,15 +250,15 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//연체정보 화면 메서드
-	public void delayInfo() {
+	public void delayInfoView() {
 		
 	}
 	
-	public void topTen() {
+	public void topTenView() {
 		
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception{
 		BookManagement bm = new BookManagement();
 		bm.setSize(800,800);
 		bm.setVisible(true);
