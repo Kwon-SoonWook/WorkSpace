@@ -1,6 +1,9 @@
 package bookManagement;
 import java.awt.*;
 import java.sql.*;
+
+import javax.swing.JLabel;
+
 import java.awt.event.*;
 public class BookManagement extends Frame implements ActionListener {
 	//DB연동
@@ -35,7 +38,12 @@ public class BookManagement extends Frame implements ActionListener {
 	
 	//검색하기 
 	Label lb_search_info_title;
-	Button bt_search_info_uname, bt_search_info_bname;
+	CheckboxGroup cg_options;
+	Checkbox cb_book;
+	Checkbox cb_person;
+	Button bt_search_info;
+	TextField tf_search_info_key;
+	Panel p_show_result;
 	
 	//연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
@@ -111,6 +119,13 @@ public class BookManagement extends Frame implements ActionListener {
 		}else if(obj == bt_user_add) {
 			try {
 				userAdd();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if (obj == bt_search_info) {
+			try {
+				searchInfo();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -241,16 +256,92 @@ public class BookManagement extends Frame implements ActionListener {
 		lb_search_info_title = new Label("검색하기", Label.CENTER);
 		p_main.add(lb_search_info_title, "North");
 		
-		Panel p_center_temp = new Panel();
-		bt_search_info_uname = new Button("사람 이름으로 검색");
+		Panel p_center_temp = new Panel(new BorderLayout(5, 5));
+		Panel p_top = new Panel(new FlowLayout(FlowLayout.CENTER));
 		
-		bt_search_info_bname = new Button("책 이름으로 검색");
-		p_center_temp.add(bt_search_info_uname);
-		p_center_temp.add(bt_search_info_bname);
+		Panel p_tf_and_bt = new Panel(new GridLayout(1, 4, 5, 5));
+		cg_options = new CheckboxGroup();
+		cb_book = new Checkbox("제목으로 책 찾기", cg_options, true);
+		cb_person = new Checkbox("이름으로 사람 찾기", cg_options, false);
+		tf_search_info_key = new TextField();
+		bt_search_info = new Button("검색");
+		p_tf_and_bt.add(cb_book);
+		p_tf_and_bt.add(cb_person);
+		p_tf_and_bt.add(tf_search_info_key);
+		p_tf_and_bt.add(bt_search_info);
+		p_top.add(p_tf_and_bt);
+		p_center_temp.add(p_top, "North");
+		
+		Panel p_show_result_temp = new Panel(new BorderLayout(5, 5));
+		
+		p_show_result = new Panel(new GridLayout(0, 5, 5, 5));
+		p_show_result_temp.add(p_show_result, "North");
+		
+		p_center_temp.add(p_show_result_temp, "Center");
+		
 		p_main.add(p_center_temp, "Center");
+		
+		bt_search_info.addActionListener(this);
 	}
 	
-	
+	public void searchInfo() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		
+		String key = tf_search_info_key.getText();
+		
+		if (cb_book.getState()) {
+			ps = con.prepareStatement("SELECT * FROM book WHERE book_name LIKE ?");
+			ps.setString(1, "%" + key + "%");
+			rs = ps.executeQuery();
+			
+			p_show_result.removeAll();
+			
+			p_show_result.add(new Label("book_id"));
+			p_show_result.add(new Label("book_name"));
+			p_show_result.add(new Label("author"));
+			p_show_result.add(new Label("publisher"));
+			p_show_result.add(new Label("lend_count"));
+			
+			while (rs.next()) {
+				p_show_result.add(new Label(Integer.toString(rs.getInt("book_id"))));
+				p_show_result.add(new Label(rs.getString("book_name")));
+				p_show_result.add(new Label(rs.getString("author")));
+				p_show_result.add(new Label(rs.getString("publisher")));
+				p_show_result.add(new Label(Integer.toString(rs.getInt("lend_count"))));
+			}
+		}
+		else if (cb_person.getState()){
+			ps = con.prepareStatement("SELECT * FROM person WHERE person_name LIKE ?");
+			ps.setString(1, "%" + key + "%");
+			rs = ps.executeQuery();
+			
+			p_show_result.removeAll();
+			
+			p_show_result.add(new Label("person_id"));
+			p_show_result.add(new Label("person_name"));
+			p_show_result.add(new Label("tel"));
+			p_show_result.add(new Label("addr"));
+			p_show_result.add(new Label("birth"));
+			
+			while (rs.next()) {
+				p_show_result.add(new Label(rs.getString("person_id")));
+				p_show_result.add(new Label(rs.getString("person_name")));
+				p_show_result.add(new Label(rs.getString("tel")));
+				p_show_result.add(new Label(rs.getString("addr")));
+				p_show_result.add(new Label(rs.getString("birth")));
+			}
+		}
+		
+		p_show_result.revalidate();
+		
+		rs.close();
+		ps.close();
+		con.close();
+	}
 	
 	//연체정보 화면 메서드
 	public void delayInfoView() {
