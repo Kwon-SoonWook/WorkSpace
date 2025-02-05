@@ -6,7 +6,7 @@ public class nam {
 		//aa
 		int a;
 		int b;
-		int c2;
+		int c2asd;
 	}
 
 }
