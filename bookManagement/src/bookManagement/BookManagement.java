@@ -157,7 +157,16 @@ public class BookManagement extends Frame implements ActionListener {
 			this.validate();
 
 		} else if (obj == book_topten) {
-
+			this.remove(p_main);
+			topTenView();
+			this.add(p_main);
+			this.validate();
+			try {
+				topTen();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		} else if (obj == close) {
 			System.exit(0);
 		} else if (obj == bt_user_add) {
