@@ -708,8 +708,9 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		lb_delay_info_title = new Label("연체 회원 정보",Label.CENTER);
 		p_main.add(lb_delay_info_title,"North");
 		Panel p_main_c = new Panel(new BorderLayout(5,5));
-		
+		Panel p_main_s=new Panel(new FlowLayout());
 		p_main.add(p_main_c,"Center");
+		p_main.add(p_main_s,"South");
 		ta_delay_list=new TextArea(str,0,0,ta_delay_list.SCROLLBARS_VERTICAL_ONLY);
 		p_main_c.add(ta_delay_list);
 		
@@ -719,7 +720,7 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		
 		bt_delay=new Button("새로고침");
 		bt_delay.setSize(100, 100);
-		p_main.add(bt_delay,"South");
+		p_main_s.add(bt_delay,"South");
 		
 		bt_delay.addActionListener(this);
 		
