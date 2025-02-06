@@ -10,7 +10,6 @@ public class BookManagement extends Frame implements ActionListener {
 	PreparedStatement ps, ps2, ps3;
 	ResultSet rs, rs2, rs3;
 	String sql;
-	
 
 	//공통
 	Menu menu;
@@ -27,7 +26,7 @@ public class BookManagement extends Frame implements ActionListener {
 	Button bt_user_add;
 	
 	//책 정보 등록
-	Label lb_book_add_title, lb_book_add_genre, lb_book_add_bname, lb_book_add_author, lb_book_add_publisher, lb_book_add_msg;
+	Label lb_book_add_title, lb_book_add_bname, lb_book_add_genre, lb_book_add_author, lb_book_add_publisher, lb_book_add_msg;
 	TextField tf_book_add_bname, tf_book_add_genre, tf_book_add_author, tf_book_add_publisher;
 	TextArea ta_book_add_list;
 	Button bt_book_add;
@@ -50,11 +49,17 @@ public class BookManagement extends Frame implements ActionListener {
 	Checkbox cb_book, cb_person;
 	Button bt_search_info;
 	TextField tf_search_info_key;
-	Panel p_show_result;
-	
-	//연체정보보기
+	TextArea ta_show_result;
+
+	// 연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
-	Panel p_main_c_n; //남광준
+	Panel p_main_c_n;
+	TextArea ta_delay_list;
+	Button bt_delay;
+
+	// 인기순위
+	Label lb_rank_info_title;
+	Panel p_main_rank;
 	
 	
 	
@@ -112,7 +117,12 @@ public class BookManagement extends Frame implements ActionListener {
 			this.validate();
 		}else if(obj == book_add) {
 			this.remove(p_main);
-			bookAddView();
+			try {
+				bookAddView();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			this.add(p_main);
 			this.validate();
 		}else if(obj == book_delete) {
@@ -142,17 +152,25 @@ public class BookManagement extends Frame implements ActionListener {
 			this.validate();
 		}else if(obj == delay_info) {
 			this.remove(p_main);
-			delayInfoView();
-			this.add(p_main);
-			this.validate();
 			try {
-				delayInfo();
+				delayInfoView();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			this.add(p_main);
+			this.validate();	
 		}else if(obj == book_topten) {
-			
+			this.remove(p_main);
+			topTenView();
+			this.add(p_main);
+			this.validate();
+			try {
+				topTen();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}else if(obj == close) {
 			System.exit(0);
 		}else if(obj == bt_user_add) {
@@ -193,6 +211,13 @@ public class BookManagement extends Frame implements ActionListener {
 		}else if (obj == bt_search_info) {
 			try {
 				searchInfo();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if (obj == bt_delay) {
+			try {
+				delayInfoView();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -262,38 +287,62 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	//책 신규 등록 및 삭제 화면 메서드
-	public void bookAddView() {
+	public void bookAddView() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		sql = "select book_id,book_name from book order by book_id asc";
+		ps = con.prepareStatement(sql);
+		rs = ps.executeQuery();
+		String str = "책 번호\t책 이름\n";
+		while(rs.next()) {
+			str += rs.getInt("book_id")+"\t"+rs.getString("book_name")+"\n";
+		}
+		
 		p_main = new Panel(new BorderLayout(10,10));
-		lb_book_add_title = new Label("책 신규등록 및 삭제", Label.CENTER);
+		lb_book_add_title = new Label("책 정보 등록", Label.CENTER);
 		p_main.add(lb_book_add_title, "North");
 		
-		Panel p_center_temp = new Panel(new GridLayout(4,2,5,5));
-		lb_book_add_genre = new Label("장르 입력 : ", Label.CENTER);
-		lb_book_add_bname = new Label("책 이름 입력 : ", Label.CENTER);
-		lb_book_add_author = new Label("저자 입력 : ", Label.CENTER);
-		lb_book_add_publisher = new Label("출판사 입력 : ", Label.CENTER);
-		tf_book_add_genre = new TextField();
+		Panel p_center_temp = new Panel(new GridLayout(1,2,20,20));
+		Panel p_center_temp_west = new Panel(new GridLayout(8,1,5,5));
+		Panel p_center_temp_center = new Panel(new BorderLayout(5,5));
+		
+		lb_book_add_bname = new Label("책 이름 : ");
+		lb_book_add_genre = new Label("장르 : ");
+		lb_book_add_author = new Label("저자 : ");
+		lb_book_add_publisher = new Label("출판사 : ");
 		tf_book_add_bname = new TextField();
+		tf_book_add_genre = new TextField();
 		tf_book_add_author = new TextField();
-		tf_book_add_publisher = new TextField();		
-		p_center_temp.add(lb_book_add_genre);
-		p_center_temp.add(tf_book_add_genre);
-		p_center_temp.add(lb_book_add_bname);
-		p_center_temp.add(tf_book_add_bname);
-		p_center_temp.add(lb_book_add_author);
-		p_center_temp.add(tf_book_add_author);
-		p_center_temp.add(lb_book_add_publisher);
-		p_center_temp.add(tf_book_add_publisher);
+		tf_book_add_publisher = new TextField();
+		ta_book_add_list = new TextArea(str,0,0,ta_book_add_list.SCROLLBARS_VERTICAL_ONLY);
+		ta_book_add_list.setEditable(false);		
+		
+		
+		p_center_temp_west.add(lb_book_add_bname);
+		p_center_temp_west.add(tf_book_add_bname);
+		p_center_temp_west.add(lb_book_add_genre);
+		p_center_temp_west.add(tf_book_add_genre);
+		p_center_temp_west.add(lb_book_add_author);
+		p_center_temp_west.add(tf_book_add_author);
+		p_center_temp_west.add(lb_book_add_publisher);
+		p_center_temp_west.add(tf_book_add_publisher);
+		
+		p_center_temp_center.add(new Label("책 정보 현황",Label.CENTER), "North");
+		p_center_temp_center.add(ta_book_add_list, "Center");
+		p_center_temp.add(p_center_temp_west, "West");
+		p_center_temp.add(p_center_temp_center, "Center");
 		p_main.add(p_center_temp, "Center");
 		
 		Panel p_south_temp = new Panel(new BorderLayout(5,5));
 		Panel p_south_south = new Panel();
 		lb_book_add_msg = new Label("메세지 : ");
 		bt_book_add = new Button("등록하기");
-		bt_book_delete = new Button("삭제하기");
 		p_south_temp.add(lb_book_add_msg);
-		p_south_south.add(bt_book_add);
-		p_south_south.add(bt_book_delete);
+		p_south_south.add(bt_book_add, "South");
 		p_south_temp.add(p_south_south, "South");
 		p_main.add(p_south_temp, "South");
 		
@@ -302,19 +351,19 @@ public class BookManagement extends Frame implements ActionListener {
 	
 	//책 등록 메서드
 	public void bookAdd() throws Exception{
-		Class.forName("oracle.jdbc.driver.OracleDriver");
-		String url ="jdbc:oracle:thin:@localhost:1521:xe";
+	    Class.forName("oracle.jdbc.driver.OracleDriver");
+	    String url ="jdbc:oracle:thin:@localhost:1521:xe";
 	    String user ="scott";
 	    String pwd ="1234";
 	    Connection con = DriverManager.getConnection(url, user, pwd);	
-	     
+	      
 	    Map<String, String> genreId = new HashMap<String, String>();
 	    genreId.put("철학",	 "philosophy_sq.NEXTVAL");
 	    genreId.put("문학",	 "literature_sq.NEXTVAL");
 	    genreId.put("과학",	 "science_sq.NEXTVAL");
 	      
 	    sql = "insert into book (book_id, book_name, author, publisher) "
-	     		+ "values (" + genreId.get(tf_book_add_genre.getText()) + " ,?,?,?)";
+	     	+ "values (" + genreId.get(tf_book_add_genre.getText()) + " ,?,?,?)";
 	    ps = con.prepareStatement(sql);
 	      
 	    ps.setString(1, tf_book_add_bname.getText());
@@ -322,6 +371,16 @@ public class BookManagement extends Frame implements ActionListener {
 	    ps.setString(3, tf_book_add_publisher.getText());
 	    ps.executeUpdate();
 	    lb_book_add_msg.setText(tf_book_add_bname.getText()+" 책의 신규 등록이 완료되었습니다.");   
+		
+	    sql = "select book_id,book_name from book order by book_id asc";
+		ps = con.prepareStatement(sql);
+		rs = ps.executeQuery();
+		String str = "책 번호\t책 이름\n";
+		while(rs.next()) {
+			str += rs.getInt("book_id")+"\t"+rs.getString("book_name")+"\n";
+		}
+	    ta_book_add_list.setText(str);
+	    rs.close();
 	    ps.close();
 	    con.close();
 	}
@@ -360,7 +419,10 @@ public class BookManagement extends Frame implements ActionListener {
 		p_center_temp_west.add(tf_book_delete_bid);
 		p_center_temp_west.add(new Label());
 		p_center_temp_west.add(new Label());
-		p_center_temp_west.add(new Panel());
+		p_center_temp_west.add(new Label());
+		p_center_temp_west.add(new Label());
+		
+
 		
 		p_center_temp_center.add(new Label("책 정보 현황",Label.CENTER), "North");
 		p_center_temp_center.add(ta_book_delete_list, "Center");
@@ -602,12 +664,9 @@ public class BookManagement extends Frame implements ActionListener {
 		p_top.add(p_tf_and_bt);
 		p_center_temp.add(p_top, "North");
 		
-		Panel p_show_result_temp = new Panel(new BorderLayout(5, 5));
+		ta_show_result = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
 		
-		p_show_result = new Panel(new GridLayout(0, 5, 5, 5));
-		p_show_result_temp.add(p_show_result, "North");
-		
-		p_center_temp.add(p_show_result_temp, "Center");
+		p_center_temp.add(ta_show_result);
 		
 		p_main.add(p_center_temp, "Center");
 		
@@ -625,24 +684,23 @@ public class BookManagement extends Frame implements ActionListener {
 		String key = tf_search_info_key.getText();
 		
 		if (cb_book.getState()) {
-			ps = con.prepareStatement("SELECT * FROM book WHERE book_name LIKE ?");
+			ps = con.prepareStatement("SELECT book_id, book_name, author, publisher, genre "
+					+ "FROM book, genres "
+					+ "WHERE book_id BETWEEN min AND max "
+					+ "AND book_name LIKE ? "
+					+ "ORDER BY book_id ASC");
 			ps.setString(1, "%" + key + "%");
 			rs = ps.executeQuery();
 			
-			p_show_result.removeAll();
+			ta_show_result.setText("");
 			
-			p_show_result.add(new Label("book_id"));
-			p_show_result.add(new Label("book_name"));
-			p_show_result.add(new Label("author"));
-			p_show_result.add(new Label("publisher"));
-			p_show_result.add(new Label("lend_count"));
+			ta_show_result.append("ID\t제목\t작가\t출판사\t분야\n");
 			
 			while (rs.next()) {
-				p_show_result.add(new Label(Integer.toString(rs.getInt("book_id"))));
-				p_show_result.add(new Label(rs.getString("book_name")));
-				p_show_result.add(new Label(rs.getString("author")));
-				p_show_result.add(new Label(rs.getString("publisher")));
-				p_show_result.add(new Label(Integer.toString(rs.getInt("lend_count"))));
+				String row = rs.getInt("book_id") + "\t" + rs.getString("book_name") + "\t"
+						+ rs.getString("author") + "\t" + rs.getString("publisher") + "\t"
+						+ rs.getString("genre") + "\n";
+				ta_show_result.append(row);
 			}
 		}
 		else if (cb_person.getState()){
@@ -650,76 +708,103 @@ public class BookManagement extends Frame implements ActionListener {
 			ps.setString(1, "%" + key + "%");
 			rs = ps.executeQuery();
 			
-			p_show_result.removeAll();
+			ta_show_result.setText("");
 			
-			p_show_result.add(new Label("person_id"));
-			p_show_result.add(new Label("person_name"));
-			p_show_result.add(new Label("tel"));
-			p_show_result.add(new Label("addr"));
-			p_show_result.add(new Label("birth"));
+			ta_show_result.append("ID\t이름\t전화번호\t주소\t출생연도\n");
 			
 			while (rs.next()) {
-				p_show_result.add(new Label(rs.getString("person_id")));
-				p_show_result.add(new Label(rs.getString("person_name")));
-				p_show_result.add(new Label(rs.getString("tel")));
-				p_show_result.add(new Label(rs.getString("addr")));
-				p_show_result.add(new Label(rs.getString("birth")));
+				String row = rs.getInt("person_id") + "\t" + rs.getString("person_name") + "\t"
+						+ rs.getString("tel") + "\t\t" + rs.getString("addr") + "\t"
+						+ rs.getString("birth") + "\n";
+				ta_show_result.append(row);
 			}
 		}
 		
-		p_show_result.revalidate();
 		rs.close();
 		ps.close();
 		con.close();
 	}
 	
-	//연체정보 화면 메서드
-	public void delayInfoView() {
-		p_main = new Panel(new BorderLayout(10,10));
-		lb_delay_info_title = new Label("연체 회원 정보",Label.CENTER);
-		p_main.add(lb_delay_info_title,"North");
-		Panel p_main_c = new Panel(new BorderLayout(5,5));
-		
-		p_main.add(p_main_c,"Center");
-		p_main_c_n = new Panel(new GridLayout(0,4,5,5));
-		p_main_c_n.add(new Label("record_id"));
-		p_main_c_n.add(new Label("book_id"));
-		p_main_c_n.add(new Label("person_id"));
-		p_main_c_n.add(new Label("event_time"));
-		
-		p_main_c.add(p_main_c_n,"North");
-	}
-	
-	//연체정보 메서드
-	public void delayInfo() throws Exception{
+	// 연체정보 화면 메서드
+	public void delayInfoView() throws Exception {
 		Class.forName("oracle.jdbc.driver.OracleDriver");
 		String url = "jdbc:oracle:thin:@localhost:1521:xe";
 		String user = "scott";
 		String pwd = "1234";
-		
-		Connection con = DriverManager.getConnection(url,user,pwd);
-		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time\r\n"
-				+ "from records"+" where event_time+14>systimestamp";//대여한지 2주 지난 회원 확인
+
+		Connection con = DriverManager.getConnection(url, user, pwd);
+		sql = "select records_id,person_name,book_name,to_char(TRUNC(r.event_time),'YYYY-MM-DD')as event_time\r\n"
+				+ "from records r,book b,person p\r\n" + "where r.book_id=b.book_id\r\n"
+				+ "and r.person_id=p.person_id\r\n" + "and event_time+14>systimestamp";// 대여한지 2주 지난 회원 확인
 		ps = con.prepareStatement(sql);
-		rs=ps.executeQuery();
-		
-		while(rs.next()) {
-			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("records_id"))));
-			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("book_id"))));
-			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("person_id"))));
-			p_main_c_n.add(new Label(rs.getString("event_time")));
+		rs = ps.executeQuery();
+
+		String str = "책 번호\t\t사용자이름\t\t책이름\t\t대여일";
+		while (rs.next()) {
+			str += "\n" + rs.getInt("records_id") + "\t\t" + rs.getString("person_name") + "\t\t"
+					+ rs.getString("book_name") + "\t\t" + rs.getString("event_time");
 		}
-		
-		p_main_c_n.revalidate();
-		p_main_c_n.repaint();  
+
+		p_main = new Panel(new BorderLayout(10, 10));
+		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);
+		p_main.add(lb_delay_info_title, "North");
+		Panel p_main_c = new Panel(new BorderLayout(5, 5));
+		Panel p_main_s = new Panel(new FlowLayout());
+		p_main.add(p_main_c, "Center");
+		p_main.add(p_main_s, "South");
+		ta_delay_list = new TextArea(str, 0, 0, ta_delay_list.SCROLLBARS_VERTICAL_ONLY);
+		p_main_c.add(ta_delay_list);
+
+		ta_delay_list.setEditable(false);
+
+		ta_delay_list.setText(str);
+
+		bt_delay = new Button("새로고침");
+		bt_delay.setSize(100, 100);
+		p_main_s.add(bt_delay, "South");
+
+		bt_delay.addActionListener(this);
+
+		p_main_c.revalidate();
+		p_main_c.repaint();
 		rs.close();
 		ps.close();
 		con.close();
+
 	}
-	
-	
+
 	public void topTenView() {
-		
+		p_main = new Panel(new BorderLayout(10, 10));
+		lb_rank_info_title = new Label("도서관 인기순위", Label.CENTER);
+		p_main.add(lb_rank_info_title, "North");
+		p_main_rank = new Panel(new GridLayout(10, 1, 10, 10));
+		p_main.add(p_main_rank, "Center");
+	}
+
+	public void topTen() throws Exception {
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+
+		Connection con = DriverManager.getConnection(url, user, pwd);
+
+		sql = "SELECT * FROM (\r\n" + "    SELECT ROW_NUMBER() OVER (ORDER BY SUM(lend_count) DESC) AS rank,\r\n"
+				+ "    book_name\r\n" + "    FROM book\r\n" + "    GROUP BY book_name\r\n" + ")\r\n"
+				+ "WHERE ROWNUM <= 10";
+		ps = con.prepareStatement(sql);
+		rs = ps.executeQuery();
+		while (rs.next()) {
+			int rank = rs.getInt("rank");
+			String title = rs.getString("book_name");
+
+			p_main_rank.add(new Label(rank + "위: " + title));
+		}
+
+		p_main_rank.revalidate();
+		rs.close();
+		ps.close();
+		con.close();
 	}
 	
 	public static void main(String[] args) throws Exception{
