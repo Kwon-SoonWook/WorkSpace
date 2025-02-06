@@ -1,12 +1,14 @@
 package bookManagement;
+
 import java.awt.*;
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.awt.event.*;
+import java.util.*;
+
 public class BookManagement_nam extends Frame implements ActionListener {
 	//DB연동
-	PreparedStatement ps;
-	ResultSet rs;
+	PreparedStatement ps, ps2, ps3;
+	ResultSet rs, rs2, rs3;
 	String sql;
 	
 
@@ -25,22 +27,31 @@ public class BookManagement_nam extends Frame implements ActionListener {
 	Button bt_user_add;
 	
 	//책 신규등록 및 삭제
-	Label lb_book_add_title, lb_book_add_bname, lb_book_add_author, lb_book_add_publisher, lb_book_add_msg;
-	TextField tf_book_add_bname, tf_book_add_author, tf_book_add_publisher;
+	Label lb_book_add_title, lb_book_add_genre, lb_book_add_bname, lb_book_add_author, lb_book_add_publisher, lb_book_add_msg;
+	TextField tf_book_add_bname, tf_book_add_genre, tf_book_add_author, tf_book_add_publisher;
 	Button bt_book_add, bt_book_delete;
 	
 	//책 대여 반납
-	Label lb_book_lend_title, lb_book_lend_bid, lb_book_lend_msg;
-	TextField tf_book_lend_bid;
+	Label lb_book_lend_title, lb_book_lend_pid, lb_book_lend_bid, lb_book_lend_msg;
+	TextField tf_book_lend_pid, tf_book_lend_bid;
 	Button bt_book_lend, bt_book_return;
 	
-	//검색하기 
+	//검색하기
 	Label lb_search_info_title;
-	Button bt_search_info_uname, bt_search_info_bname;
+	CheckboxGroup cg_options;
+	Checkbox cb_book, cb_person;
+	Button bt_search_info;
+	TextField tf_search_info_key;
+	Panel p_show_result;
 	
 	//연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
-	Panel p_main_c_n; //남광준
+	Panel p_main_c_n;
+	
+	//인기순위
+	Label lb_rank_info_title;
+	Panel p_main_rank;
+	
 	
 	
 	
@@ -80,7 +91,7 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		close.addActionListener(this);
 	}
 	
-	
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object obj = e.getSource();
 		if(obj == user_add) {
@@ -115,7 +126,10 @@ public class BookManagement_nam extends Frame implements ActionListener {
 				e1.printStackTrace();
 			}
 		}else if(obj == book_topten) {
-			
+			this.remove(p_main);
+			topTenView();
+			this.add(p_main);
+			this.validate();
 		}else if(obj == close) {
 			System.exit(0);
 		}else if(obj == bt_user_add) {
@@ -125,8 +139,42 @@ public class BookManagement_nam extends Frame implements ActionListener {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+		}else if(obj == bt_book_lend) {
+			try {
+				bookLend();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if(obj == bt_book_add) {
+			try {
+				bookAdd();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}	
+		}else if(obj == bt_book_return) {
+			try {
+				bookReturn();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if(obj == bt_book_delete) {
+			try {
+				bookDelete();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if (obj == bt_search_info) {
+			try {
+				searchInfo();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
-		
 	}
 	//사용자 등록 화면 메서드
 	public void userAddView() {
@@ -184,8 +232,10 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		ps.executeUpdate();
 		
 		lb_user_add_msg.setText("등록이 완료되었습니다.");
+		
+		ps.close();
+		con.close();
 	}
-	
 	
 	//책 신규 등록 및 삭제 화면 메서드
 	public void bookAddView() {
@@ -193,13 +243,17 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		lb_book_add_title = new Label("책 신규등록 및 삭제", Label.CENTER);
 		p_main.add(lb_book_add_title, "North");
 		
-		Panel p_center_temp = new Panel(new GridLayout(3,2,5,5));
+		Panel p_center_temp = new Panel(new GridLayout(4,2,5,5));
+		lb_book_add_genre = new Label("장르 입력 : ", Label.CENTER);
 		lb_book_add_bname = new Label("책 이름 입력 : ", Label.CENTER);
 		lb_book_add_author = new Label("저자 입력 : ", Label.CENTER);
 		lb_book_add_publisher = new Label("출판사 입력 : ", Label.CENTER);
+		tf_book_add_genre = new TextField();
 		tf_book_add_bname = new TextField();
 		tf_book_add_author = new TextField();
-		tf_book_add_publisher = new TextField();
+		tf_book_add_publisher = new TextField();		
+		p_center_temp.add(lb_book_add_genre);
+		p_center_temp.add(tf_book_add_genre);
 		p_center_temp.add(lb_book_add_bname);
 		p_center_temp.add(tf_book_add_bname);
 		p_center_temp.add(lb_book_add_author);
@@ -218,7 +272,57 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		p_south_south.add(bt_book_delete);
 		p_south_temp.add(p_south_south, "South");
 		p_main.add(p_south_temp, "South");
+		
+		bt_book_add.addActionListener(this);
+		bt_book_delete.addActionListener(this);
 	}
+	
+	//책 등록 메서드
+	 	public void bookAdd() throws Exception{
+	      Class.forName("oracle.jdbc.driver.OracleDriver");
+	      String url ="jdbc:oracle:thin:@localhost:1521:xe";
+	      String user ="scott";
+	      String pwd ="1234";
+	      Connection con = DriverManager.getConnection(url, user, pwd);	
+	      
+	      Map<String, String> genreId = new HashMap<String, String>();
+	      genreId.put("철학",	 "philosophy_sq.NEXTVAL");
+	      genreId.put("문학",	 "literature_sq.NEXTVAL");
+	      genreId.put("과학",	 "science_sq.NEXTVAL");
+	      
+	      sql = "insert into book (book_id, book_name, author, publisher) "
+	      		+ "values (" + genreId.get(tf_book_add_genre.getText()) + " ,?,?,?)";
+	      ps = con.prepareStatement(sql);
+	      
+	      ps.setString(1, tf_book_add_bname.getText());
+	      ps.setString(2, tf_book_add_author.getText());
+	      ps.setString(3, tf_book_add_publisher.getText());
+	      ps.executeUpdate();
+	      lb_book_add_msg.setText(tf_book_add_bname.getText()+" 책의 신규 등록이 완료되었습니다.");   
+	      ps.close();
+	      con.close();
+	   }
+	   
+	//책 삭제 메서드
+	   public void bookDelete() throws Exception{
+		      Class.forName("oracle.jdbc.driver.OracleDriver");
+		      String url ="jdbc:oracle:thin:@localhost:1521:xe";
+		      String user ="scott";
+		      String pwd ="1234";
+		      Connection con = DriverManager.getConnection(url, user, pwd);
+		      
+		      sql = "delete from book where book_id=? ";
+		      ps = con.prepareStatement(sql);
+		      ps.setString(1, tf_book_add_genre.getText());
+		      int count = ps.executeUpdate();
+		      if(count == 0) {
+		         lb_book_add_msg.setText("해당 책 번호는 없는 번호입니다.");
+		      }else {
+		         lb_book_add_msg.setText(tf_book_add_genre.getText()+" 번의 책 정보가 삭제 되었습니다.");
+		      }
+		      ps.close();
+		      con.close();
+		   }
 	
 	//책 대여 및 반납 화면 메서드
 	public void bookLendView() {
@@ -226,9 +330,13 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		lb_book_lend_title = new Label("책 대여 및 반납", Label.CENTER);
 		p_main.add(lb_book_lend_title, "North");
 		
-		Panel p_center_temp = new Panel(new GridLayout(1,2,5,5));
+		Panel p_center_temp = new Panel(new GridLayout(2,2,5,5));		
+		lb_book_lend_pid = new Label("사용자 번호 입력 : ", Label.CENTER);
+		tf_book_lend_pid = new TextField();
 		lb_book_lend_bid = new Label("책 번호 입력 : ", Label.CENTER);
 		tf_book_lend_bid = new TextField();
+		p_center_temp.add(lb_book_lend_pid);
+		p_center_temp.add(tf_book_lend_pid);
 		p_center_temp.add(lb_book_lend_bid);
 		p_center_temp.add(tf_book_lend_bid);
 		p_main.add(p_center_temp, "Center");
@@ -243,47 +351,215 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		p_south_south.add(bt_book_return);
 		p_south_temp.add(p_south_south, "South");
 		p_main.add(p_south_temp, "South");
+		
+		bt_book_lend.addActionListener(this);
+		bt_book_return.addActionListener(this);
 	}
 	
-	// 검색하기 화면 메서드
+	//책 대여 메서드
+	public void bookLend() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		int person_id = Integer.parseInt(tf_book_lend_pid.getText());
+		int book_id = Integer.parseInt(tf_book_lend_bid.getText());
+		int count = 0;
+		sql = "select * from records where person_id=?";
+		ps = con.prepareStatement(sql);
+		ps.setInt(1, person_id);
+		rs = ps.executeQuery();
+		while(rs.next()) {
+			count++;
+		}
+		if(count >= 5) {
+			lb_book_lend_msg.setText(person_id+"번 사용자님은 이미 5권의 책을 빌리셨습니다. 반납 후 이용해주세요.");			
+		}
+		else {
+			sql = "select * from records where book_id=?";
+			ps = con.prepareStatement(sql);
+			ps.setInt(1, book_id);
+			rs = ps.executeQuery();
+			if(rs.next()) {
+				lb_book_lend_msg.setText(book_id+"번 책은 대여 된 상태입니다.");
+			}
+			else {
+				sql = "select * from book where book_id=?";
+				ps = con.prepareStatement(sql);
+				ps.setInt(1, book_id);
+				rs = ps.executeQuery();
+				if(rs.next()) {
+					sql = "update book set lend_count=lend_count+1 where book_id=?";
+					ps = con.prepareStatement(sql);
+					ps.setInt(1, book_id);
+					ps.executeUpdate();
+					sql = "insert into records (book_id,person_id) values (?,?)";
+					ps = con.prepareStatement(sql);
+					ps.setInt(1, book_id);
+					ps.setInt(2, person_id);
+					ps.executeUpdate();
+					lb_book_lend_msg.setText(person_id+"번 사용자님의"+book_id+"번 책 대여가 완료되었습니다.");
+				}
+				else {
+					lb_book_lend_msg.setText(book_id+"번 책은 등록되지 않았습니다. 책 번호를 확인해주세요.");				
+				}
+			}
+		}			
+		rs.close();
+		ps.close();
+		con.close();
+	}
+	
+	//책 반납 메서드
+	public void bookReturn() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		int person_id = Integer.parseInt(tf_book_lend_pid.getText());
+		int book_id = Integer.parseInt(tf_book_lend_bid.getText());
+		sql = "select * from book where book_id=?";
+		ps = con.prepareStatement(sql);
+		ps.setInt(1, book_id);
+		rs = ps.executeQuery();
+		if(rs.next()) {
+			sql = "select * from records where book_id=? and person_id=?";
+			ps = con.prepareStatement(sql);
+			ps.setInt(1, book_id);
+			ps.setInt(2, person_id);
+			ps.executeUpdate();
+			rs = ps.executeQuery();
+			if(rs.next()) {
+				sql = "delete from records where book_id=?";
+				ps = con.prepareStatement(sql);
+				ps.setInt(1, book_id);
+				ps.executeUpdate();
+				lb_book_lend_msg.setText(person_id+"번 사용자로부터 "+book_id+"번 책이 반납되었습니다.");
+			}else {
+				lb_book_lend_msg.setText(person_id+"사용자님은 "+book_id+"번 책을 대여하지 않았습니다. 책 번호를 확인해주세요.");
+			}
+		}else {
+			lb_book_lend_msg.setText(book_id+"번 책은 등록되지 않았습니다. 책 번호를 확인해주세요.");
+		}
+		rs.close();
+		ps.close();
+		con.close();
+	}
+	
+	
+	//검색하기 화면 메서드
 	public void searchInfoView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_search_info_title = new Label("검색하기", Label.CENTER);
 		p_main.add(lb_search_info_title, "North");
 		
-		Panel p_center_temp = new Panel();
-		bt_search_info_uname = new Button("사람 이름으로 검색");
+		Panel p_center_temp = new Panel(new BorderLayout(5, 5));
+		Panel p_top = new Panel(new FlowLayout(FlowLayout.CENTER));
 		
-		bt_search_info_bname = new Button("책 이름으로 검색");
-		p_center_temp.add(bt_search_info_uname);
-		p_center_temp.add(bt_search_info_bname);
+		Panel p_tf_and_bt = new Panel(new GridLayout(1, 4, 5, 5));
+		cg_options = new CheckboxGroup();
+		cb_book = new Checkbox("제목으로 책 찾기", cg_options, true);
+		cb_person = new Checkbox("이름으로 사람 찾기", cg_options, false);
+		tf_search_info_key = new TextField();
+		bt_search_info = new Button("검색");
+		p_tf_and_bt.add(cb_book);
+		p_tf_and_bt.add(cb_person);
+		p_tf_and_bt.add(tf_search_info_key);
+		p_tf_and_bt.add(bt_search_info);
+		p_top.add(p_tf_and_bt);
+		p_center_temp.add(p_top, "North");
+		
+		Panel p_show_result_temp = new Panel(new BorderLayout(5, 5));
+		
+		p_show_result = new Panel(new GridLayout(0, 5, 5, 5));
+		p_show_result_temp.add(p_show_result, "North");
+		
+		p_center_temp.add(p_show_result_temp, "Center");
+		
 		p_main.add(p_center_temp, "Center");
+		
+		bt_search_info.addActionListener(this);
 	}
 	
+	//검색하기 메서드
+	public void searchInfo() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		
+		String key = tf_search_info_key.getText();
+		
+		if (cb_book.getState()) {
+			ps = con.prepareStatement("SELECT * FROM book WHERE book_name LIKE ?");
+			ps.setString(1, "%" + key + "%");
+			rs = ps.executeQuery();
+			
+			p_show_result.removeAll();
+			
+			p_show_result.add(new Label("book_id"));
+			p_show_result.add(new Label("book_name"));
+			p_show_result.add(new Label("author"));
+			p_show_result.add(new Label("publisher"));
+			p_show_result.add(new Label("lend_count"));
+			
+			while (rs.next()) {
+				p_show_result.add(new Label(Integer.toString(rs.getInt("book_id"))));
+				p_show_result.add(new Label(rs.getString("book_name")));
+				p_show_result.add(new Label(rs.getString("author")));
+				p_show_result.add(new Label(rs.getString("publisher")));
+				p_show_result.add(new Label(Integer.toString(rs.getInt("lend_count"))));
+			}
+		}
+		else if (cb_person.getState()){
+			ps = con.prepareStatement("SELECT * FROM person WHERE person_name LIKE ?");
+			ps.setString(1, "%" + key + "%");
+			rs = ps.executeQuery();
+			
+			p_show_result.removeAll();
+			
+			p_show_result.add(new Label("person_id"));
+			p_show_result.add(new Label("person_name"));
+			p_show_result.add(new Label("tel"));
+			p_show_result.add(new Label("addr"));
+			p_show_result.add(new Label("birth"));
+			
+			while (rs.next()) {
+				p_show_result.add(new Label(rs.getString("person_id")));
+				p_show_result.add(new Label(rs.getString("person_name")));
+				p_show_result.add(new Label(rs.getString("tel")));
+				p_show_result.add(new Label(rs.getString("addr")));
+				p_show_result.add(new Label(rs.getString("birth")));
+			}
+		}
+		
+		p_show_result.revalidate();
+		rs.close();
+		ps.close();
+		con.close();
+	}
 	
-	
-	//연체정보 화면 메서드..
-	public void delayInfoView(){
+	//연체정보 화면 메서드
+	public void delayInfoView() {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_delay_info_title = new Label("연체 회원 정보",Label.CENTER);
 		p_main.add(lb_delay_info_title,"North");
 		Panel p_main_c = new Panel(new BorderLayout(5,5));
 		
 		p_main.add(p_main_c,"Center");
-		p_main_c_n = new Panel(new GridLayout(0,5,5,5));
+		p_main_c_n = new Panel(new GridLayout(0,4,5,5));
 		p_main_c_n.add(new Label("record_id"));
 		p_main_c_n.add(new Label("book_id"));
 		p_main_c_n.add(new Label("person_id"));
 		p_main_c_n.add(new Label("event_time"));
-		p_main_c_n.add(new Label("records_count"));
 		
 		p_main_c.add(p_main_c_n,"North");
-		
-		
-		
-		
 	}
 	
+	//연체정보 메서드
 	public void delayInfo() throws Exception{
 		Class.forName("oracle.jdbc.driver.OracleDriver");
 		String url = "jdbc:oracle:thin:@localhost:1521:xe";
@@ -292,7 +568,7 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		
 		Connection con = DriverManager.getConnection(url,user,pwd);
 		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time\r\n"
-				+ "from records"+"where event_time+14>systimestamp";//대여한지 2주 지난 회원 확인
+				+ "from records"+" where event_time+14>systimestamp";//대여한지 2주 지난 회원 확인
 		ps = con.prepareStatement(sql);
 		rs=ps.executeQuery();
 		
@@ -309,14 +585,36 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		ps.close();
 		con.close();
 	}
+	//인기순위 화면 메서드
 	public void topTenView() {
+		p_main = new Panel(new BorderLayout(10,10));
+		lb_rank_info_title = new Label("도서관 인기순위",Label.CENTER);
+		p_main.add(lb_rank_info_title,"North");
+		p_main_rank = new Panel(new GridLayout(1,2,10,10));
+		p_main.add(p_main_rank,"Center");
 		
+		Panel p_rank_one = new Panel(new GridLayout(3,2,30,20));
+		Panel p_rank_two = new Panel(new GridLayout(7,2,10,20));
+		
+		p_main_rank.add(p_rank_one);
+		p_main_rank.add(p_rank_two);
+		
+		p_rank_one.add(new Label("1등 : "));
+		p_rank_one.add(new Label("2등 : "));
+		p_rank_one.add(new Label("3등 : "));
+		p_rank_two.add(new Label("4등 : "));
+		p_rank_two.add(new Label("5등 : "));
+		p_rank_two.add(new Label("6등 : "));
+		p_rank_two.add(new Label("7등 : "));
+		p_rank_two.add(new Label("8등 : "));
+		p_rank_two.add(new Label("9등 : "));
+		p_rank_two.add(new Label("10등 : "));
 	}
+
 	
 	public static void main(String[] args) throws Exception{
 		BookManagement_nam bm = new BookManagement_nam();
 		bm.setSize(800,800);
 		bm.setVisible(true);
 	}
-
 }
