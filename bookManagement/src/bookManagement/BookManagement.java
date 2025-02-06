@@ -338,7 +338,7 @@ public class BookManagement extends Frame implements ActionListener {
 		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time from records order by records_id asc";
 		ps = con.prepareStatement(sql);
 		rs = ps.executeQuery();
-		String str = "책번호\t\t사용자ID\t\t빌린시간\n";
+		String str = "책 번호\t\t사용자ID\t\t대여일\n";
 		while(rs.next()) {
 			str += rs.getInt("book_id")+"\t\t"+rs.getInt("person_id")+"\t\t"+rs.getString("event_time")+"\n";
 		}
@@ -348,7 +348,7 @@ public class BookManagement extends Frame implements ActionListener {
 		p_main.add(lb_book_lend_title, "North");
 		
 		Panel p_center_temp = new Panel(new BorderLayout(20,20));
-		Panel p_center_temp_west = new Panel(new GridLayout(6,2,5,10));
+		Panel p_center_temp_west = new Panel(new GridLayout(6,2,5,16));
 		Panel p_center_temp_center = new Panel(new BorderLayout(5,5));
 		
 		lb_book_lend_pid = new Label("사용자 ID : ");
@@ -356,7 +356,7 @@ public class BookManagement extends Frame implements ActionListener {
 		lb_book_lend_bid = new Label("책 번호     : ");
 		tf_book_lend_bid = new TextField();
 		ta_book_lend_list = new TextArea(str,0,0,ta_book_lend_list.SCROLLBARS_VERTICAL_ONLY);
-		ta_book_lend_list.setEditable(false);				
+		ta_book_lend_list.setEditable(false);		
 		
 		p_center_temp_west.add(new Label());
 		p_center_temp_west.add(new Label());
@@ -368,7 +368,6 @@ public class BookManagement extends Frame implements ActionListener {
 		p_center_temp_west.add(new Label());
 		p_center_temp_center.add(new Label("책 대여 현황",Label.CENTER), "North");
 		p_center_temp_center.add(ta_book_lend_list, "Center");
-		p_center_temp.add(new Panel(), "North");
 		p_center_temp.add(p_center_temp_west, "West");
 		p_center_temp.add(p_center_temp_center, "Center");
 		p_main.add(p_center_temp, "Center");
@@ -437,7 +436,15 @@ public class BookManagement extends Frame implements ActionListener {
 					lb_book_lend_msg.setText(book_id+"번 책은 등록되지 않았습니다. 책 번호를 확인해주세요.");				
 				}
 			}
-		}			
+		}
+		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time from records order by records_id asc";
+		ps = con.prepareStatement(sql);
+		rs = ps.executeQuery();
+		String str = "책 번호\t\t사용자ID\t\t대여일\n";
+		while(rs.next()) {
+			str += rs.getInt("book_id")+"\t\t"+rs.getInt("person_id")+"\t\t"+rs.getString("event_time")+"\n";
+		}
+		ta_book_lend_list.setText(str);
 		rs.close();
 		ps.close();
 		con.close();
@@ -475,6 +482,14 @@ public class BookManagement extends Frame implements ActionListener {
 		}else {
 			lb_book_lend_msg.setText(book_id+"번 책은 등록되지 않았습니다. 책 번호를 확인해주세요.");
 		}
+		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time from records order by records_id asc";
+		ps = con.prepareStatement(sql);
+		rs = ps.executeQuery();
+		String str = "책 번호\t\t사용자ID\t\t대여일\n";
+		while(rs.next()) {
+			str += rs.getInt("book_id")+"\t\t"+rs.getInt("person_id")+"\t\t"+rs.getString("event_time")+"\n";
+		}
+		ta_book_lend_list.setText(str);
 		rs.close();
 		ps.close();
 		con.close();
