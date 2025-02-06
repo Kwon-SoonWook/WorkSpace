@@ -548,10 +548,11 @@ public class BookManagement extends Frame implements ActionListener {
 		String pwd = "1234";
 		
 		Connection con = DriverManager.getConnection(url,user,pwd);
-		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time\r\n"
-				+ "from records"+" where event_time+14>systimestamp";//대여한지 2주 지난 회원 확인
+		sql = "select records_id,p.person_name,b.book_name,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time2\r\n"
+				+ "from records,book b,person p"+" where event_time2+14>systimestamp";//대여한지 2주 지난 회원 확인
 		ps = con.prepareStatement(sql);
 		rs=ps.executeQuery();
+		String str="대여번호\t사용자이름\t책이름\t연체일";
 		
 		while(rs.next()) {
 			p_main_c_n.add(new Label("\t"+Integer.toString(rs.getInt("records_id"))));
