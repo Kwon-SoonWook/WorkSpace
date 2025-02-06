@@ -590,7 +590,7 @@ public class BookManagement_nam extends Frame implements ActionListener {
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_rank_info_title = new Label("도서관 인기순위",Label.CENTER);
 		p_main.add(lb_rank_info_title,"North");
-		p_main_rank = new Panel(new GridLayout(1,2,10,10));
+		p_main_rank = new Panel(new GridLayout(2,1,10,10));
 		p_main.add(p_main_rank,"Center");
 		
 		Panel p_rank_one = new Panel(new GridLayout(3,2,30,20));
