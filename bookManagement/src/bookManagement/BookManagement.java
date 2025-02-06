@@ -34,6 +34,9 @@ public class BookManagement extends Frame implements ActionListener {
 	//책 대여 반납
 	Label lb_book_lend_title, lb_book_lend_pid, lb_book_lend_bid, lb_book_lend_msg;
 	TextField tf_book_lend_pid, tf_book_lend_bid;
+
+	TextArea ta_book_lend_list;
+
 	Button bt_book_lend, bt_book_return;
 	
 	//검색하기
@@ -87,6 +90,11 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	@Override
+	public Insets insets() {
+		Insets i = new Insets(60, 30, 20, 50);
+		return i;
+	}
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object obj = e.getSource();
 		if(obj == user_add) {
@@ -101,7 +109,16 @@ public class BookManagement extends Frame implements ActionListener {
 			this.validate();
 		}else if(obj == book_lend) {
 			this.remove(p_main);
-			bookLendView();
+
+			
+
+			try {
+				bookLendView();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
 			this.add(p_main);
 			this.validate();
 		}else if(obj == search_info) {
@@ -317,20 +334,62 @@ public class BookManagement extends Frame implements ActionListener {
 		   }
 	
 	//책 대여 및 반납 화면 메서드
-	public void bookLendView() {
+
+	
+
+	public void bookLendView() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		
+		Connection con = DriverManager.getConnection(url,user,pwd);
+		sql = "select records_id,book_id,person_id,to_char(TRUNC(event_time),'YYYY-MM-DD') as event_time from records order by records_id asc";
+		ps = con.prepareStatement(sql);
+		rs = ps.executeQuery();
+		String str = "책번호\t\t사용자ID\t\t빌린시간\n";
+		while(rs.next()) {
+			str += rs.getInt("book_id")+"\t\t"+rs.getInt("person_id")+"\t\t"+rs.getString("event_time")+"\n";
+		}
+		
+
 		p_main = new Panel(new BorderLayout(10,10));
 		lb_book_lend_title = new Label("책 대여 및 반납", Label.CENTER);
 		p_main.add(lb_book_lend_title, "North");
 		
-		Panel p_center_temp = new Panel(new GridLayout(2,2,5,5));		
-		lb_book_lend_pid = new Label("사용자 번호 입력 : ", Label.CENTER);
+
+		Panel p_center_temp = new Panel(new BorderLayout(20,20));
+		Panel p_center_temp_west = new Panel(new GridLayout(6,2,5,10));
+		Panel p_center_temp_center = new Panel(new BorderLayout(5,5));
+		
+		lb_book_lend_pid = new Label("사용자 ID : ");
 		tf_book_lend_pid = new TextField();
-		lb_book_lend_bid = new Label("책 번호 입력 : ", Label.CENTER);
+		lb_book_lend_bid = new Label("책 번호     : ");
+
 		tf_book_lend_bid = new TextField();
+
 		p_center_temp.add(lb_book_lend_pid);
 		p_center_temp.add(tf_book_lend_pid);
 		p_center_temp.add(lb_book_lend_bid);
 		p_center_temp.add(tf_book_lend_bid);
+
+		ta_book_lend_list = new TextArea(str,0,0,ta_book_lend_list.SCROLLBARS_VERTICAL_ONLY);
+		ta_book_lend_list.setEditable(false);				
+		
+		p_center_temp_west.add(new Label());
+		p_center_temp_west.add(new Label());
+		p_center_temp_west.add(lb_book_lend_pid);
+		p_center_temp_west.add(tf_book_lend_pid);
+		p_center_temp_west.add(lb_book_lend_bid);
+		p_center_temp_west.add(tf_book_lend_bid);
+		p_center_temp_west.add(new Label());
+		p_center_temp_west.add(new Label());
+		p_center_temp_center.add(new Label("책 대여 현황",Label.CENTER), "North");
+		p_center_temp_center.add(ta_book_lend_list, "Center");
+		p_center_temp.add(new Panel(), "North");
+		p_center_temp.add(p_center_temp_west, "West");
+		p_center_temp.add(p_center_temp_center, "Center");
+
 		p_main.add(p_center_temp, "Center");
 		
 		Panel p_south_temp = new Panel(new BorderLayout(5,5));
@@ -578,13 +637,15 @@ public class BookManagement extends Frame implements ActionListener {
 		con.close();
 	}
 	
+
 	public void topTenView() {
 		
 	}
 	
 	public static void main(String[] args) throws Exception{
 		BookManagement bm = new BookManagement();
-		bm.setSize(800,800);
+		bm.setSize(600,400);
 		bm.setVisible(true);
+		bm.setResizable(false);
 	}
 }
