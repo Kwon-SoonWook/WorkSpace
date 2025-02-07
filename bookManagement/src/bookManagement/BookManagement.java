@@ -704,18 +704,23 @@ public class BookManagement extends Frame implements ActionListener {
 			}
 		}
 		else if (cb_person.getState()){
-			ps = con.prepareStatement("SELECT * FROM person WHERE person_name LIKE ?");
+			ps = con.prepareStatement("SELECT person.person_id, person_name, tel, addr, birth, NVL(5 - lend_per_person, 5) AS lend_limit "
+					+ "FROM person, (SELECT person_id, COUNT(person_id) AS lend_per_person "
+					+ "              FROM records "
+					+ "              GROUP BY person_id) lend_per_person "
+					+ "WHERE person.person_id = lend_per_person.person_id(+) "
+					+ "AND person_name LIKE ?");
 			ps.setString(1, "%" + key + "%");
 			rs = ps.executeQuery();
 			
 			ta_show_result.setText("");
 			
-			ta_show_result.append("ID\t이름\t전화번호\t주소\t출생연도\n");
+			ta_show_result.append("ID\t이름\t전화번호\t주소\t출생연도\t가능대여권수\n");
 			
 			while (rs.next()) {
 				String row = rs.getInt("person_id") + "\t" + rs.getString("person_name") + "\t"
 						+ rs.getString("tel") + "\t\t" + rs.getString("addr") + "\t"
-						+ rs.getString("birth") + "\n";
+						+ rs.getString("birth") + "\t\t" + rs.getInt("lend_limit") + "\n";
 				ta_show_result.append(row);
 			}
 		}
