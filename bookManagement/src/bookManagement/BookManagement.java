@@ -57,7 +57,7 @@ public class BookManagement extends Frame implements ActionListener {
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
 	Panel p_main_c_n;
 	Button bt_delay;
-	List l_book_id,l_person_name,l_book_name,l_event_time;
+	List l_delay,l_book_id,l_person_name,l_book_name,l_event_time;
 
 	// 인기순위
 	Label lb_rank_info_title;
@@ -232,6 +232,7 @@ public class BookManagement extends Frame implements ActionListener {
 				e1.printStackTrace();
 			}
 		}else if (obj == bt_delay) {
+			this.remove(p_main);
 			try {
 				delayInfoView();
 			} catch (Exception e1) {
@@ -248,7 +249,7 @@ public class BookManagement extends Frame implements ActionListener {
 		p_main.add(lb_main);
 	}
 	
-	//사용자 등록 현황 메서드
+	//사용자 등록 현황 메서드g
 	public String userList() throws Exception {
 		Class.forName("oracle.jdbc.driver.OracleDriver");
 	    String url = "jdbc:oracle:thin:@localhost:1521:xe";
@@ -776,33 +777,27 @@ public class BookManagement extends Frame implements ActionListener {
 		p_main.add(lb_delay_info_title, "North");
 		Panel p_main_c = new Panel(new BorderLayout(5, 5));
 		Panel p_main_s = new Panel(new FlowLayout());
-		Panel p_main_c_g=new Panel(new GridLayout(1,4)); 
+		 
 		p_main.add(p_main_c, "Center");
 		p_main.add(p_main_s, "South"); 
-		p_main_c.add(p_main_c_g);
-		Panel p_main_c_g_one=new Panel(new BorderLayout(10,10));
-		Panel p_main_c_g_two=new Panel(new BorderLayout(10,10));
-		Panel p_main_c_g_three=new Panel(new BorderLayout(10,10));
-		Panel p_main_c_g_four=new Panel(new BorderLayout(10,10));
-		p_main_c_g.add(p_main_c_g_one);
-		p_main_c_g.add(p_main_c_g_two);
-		p_main_c_g.add(p_main_c_g_three);
-		p_main_c_g.add(p_main_c_g_four);
 		
-		List l_book_id_sub=new List(1,false);
-		List l_person_name_sub=new List(1,false);
-		List l_book_name_sub=new List(1,false);
-		List l_event_time_sub=new List(1,false);
+		Panel p_main_c_n=new Panel(new GridLayout(1,4,10,10));
+		p_main_c.add(p_main_c_n);
 		
-		l_book_id=new List(0,false);
+		Label l_book_id_sub=new Label("대여번호");
+		Label l_person_name_sub=new Label("회원이름");
+		Label l_book_name_sub=new Label("책이름");
+		Label l_event_time_sub=new Label("연체일");
+		p_main_c_n.add(l_book_id_sub);
+		p_main_c_n.add(l_person_name_sub);
+		p_main_c_n.add(l_book_name_sub);
+		p_main_c_n.add(l_event_time_sub);
+		
+		l_delay=new List(0,false);
 		l_person_name=new List(0,false);
 		l_book_name=new List(0,false);
 		l_event_time=new List(0,false);
-		
-		l_book_id_sub.add("대여번호");
-		l_person_name_sub.add("회원이름");
-		l_book_name_sub.add("책이름");
-		l_event_time_sub.add("대여날짜");
+		p_main_c.add(l_delay,"Center");
 
 		while (rs.next()) {
 			l_book_id.add(""+rs.getInt("records_id"));
@@ -811,99 +806,9 @@ public class BookManagement extends Frame implements ActionListener {
 			l_event_time.add(rs.getString("event_time"));
 		}
 		
-		p_main_c_g_one.add(l_book_id_sub,"North");
-		p_main_c_g_one.add(l_book_id,"Center");
-		p_main_c_g_two.add(l_person_name_sub,"North");
-		p_main_c_g_two.add(l_person_name,"Center");
-		p_main_c_g_three.add(l_book_name_sub,"North");
-		p_main_c_g_three.add(l_book_name,"Center");
-		p_main_c_g_four.add(l_event_time_sub,"North");
-		p_main_c_g_four.add(l_event_time,"Center");
 		
-		l_book_id.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				int index = l_book_id.getSelectedIndex();
-				if(l_book_id.getSelectedIndex()==0) {
-					for(int i=0;i<l_book_id.getItemCount();i++) {
-						l_book_id.deselect(i);
-						l_person_name.deselect(i);
-						l_book_name.deselect(i);
-						l_event_time.deselect(i);
-					}
-					
-				} else if (index != 0) {
-					l_person_name.select(index);
-					l_book_name.select(index);
-					l_event_time.select(index);
-				} 
-
-			}
-		});
 		
-		l_person_name.addItemListener(new ItemListener() {
 
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				int index = l_person_name.getSelectedIndex();
-				if(l_person_name.getSelectedIndex()==0) {
-					for(int i=0;i<l_book_id.getItemCount();i++) {
-						l_book_id.deselect(i);
-						l_person_name.deselect(i);
-						l_book_name.deselect(i);
-						l_event_time.deselect(i);
-					}
-					
-				} else if (index != 0) {
-					l_book_id.select(index);
-					l_book_name.select(index);
-					l_event_time.select(index);
-				} 
-			}
-		});
-		
-		l_book_name.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				int index = l_book_name.getSelectedIndex();
-				if(l_book_name.getSelectedIndex()==0) {
-					for(int i=0;i<l_book_id.getItemCount();i++) {
-						l_book_id.deselect(i);
-						l_person_name.deselect(i);
-						l_book_name.deselect(i);
-						l_event_time.deselect(i);
-					}
-					
-				} else if (index != 0) {
-					l_book_id.select(index);
-					l_person_name.select(index);
-					l_event_time.select(index);
-				} 
-				}
-		});
-		
-		l_event_time.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				int index = l_event_time.getSelectedIndex();
-				if(l_event_time.getSelectedIndex()==0) {
-					for(int i=0;i<l_book_id.getItemCount();i++) {
-						l_book_id.deselect(i);
-						l_person_name.deselect(i);
-						l_book_name.deselect(i);
-						l_event_time.deselect(i);
-					}
-					
-				} else if (index != 0) {
-					l_book_id.select(index);
-					l_book_name.select(index);
-					l_person_name.select(index);
-				} 
-			}
-		});
 		
 		
 		bt_delay = new Button("새로고침");
