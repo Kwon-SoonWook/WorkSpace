@@ -1,6 +1,7 @@
 package bookManagement;
 
 import java.awt.*;
+import java.awt.List;
 import java.sql.*;
 import java.awt.event.*;
 import java.util.*;
@@ -54,8 +55,8 @@ public class BookManagement extends Frame implements ActionListener {
 	// 연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
 	Panel p_main_c_n;
-	TextArea ta_delay_list;
 	Button bt_delay;
+	List l_book_id,l_person_name,l_book_name,l_event_time;
 
 	// 인기순위
 	Label lb_rank_info_title;
@@ -747,27 +748,142 @@ public class BookManagement extends Frame implements ActionListener {
 				+ "and r.person_id=p.person_id\r\n" + "and event_time+14>systimestamp";// 대여한지 2주 지난 회원 확인
 		ps = con.prepareStatement(sql);
 		rs = ps.executeQuery();
-
-		String str = "책 번호\t\t사용자이름\t\t책이름\t\t대여일";
-		while (rs.next()) {
-			str += "\n" + rs.getInt("records_id") + "\t\t" + rs.getString("person_name") + "\t\t"
-					+ rs.getString("book_name") + "\t\t" + rs.getString("event_time");
-		}
-
+		
 		p_main = new Panel(new BorderLayout(10, 10));
-		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);
+		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);; 
 		p_main.add(lb_delay_info_title, "North");
 		Panel p_main_c = new Panel(new BorderLayout(5, 5));
 		Panel p_main_s = new Panel(new FlowLayout());
+		Panel p_main_c_g=new Panel(new GridLayout(1,4)); 
 		p_main.add(p_main_c, "Center");
-		p_main.add(p_main_s, "South");
-		ta_delay_list = new TextArea(str, 0, 0, ta_delay_list.SCROLLBARS_VERTICAL_ONLY);
-		p_main_c.add(ta_delay_list);
+		p_main.add(p_main_s, "South"); 
+		p_main_c.add(p_main_c_g);
+		Panel p_main_c_g_one=new Panel(new BorderLayout(10,10));
+		Panel p_main_c_g_two=new Panel(new BorderLayout(10,10));
+		Panel p_main_c_g_three=new Panel(new BorderLayout(10,10));
+		Panel p_main_c_g_four=new Panel(new BorderLayout(10,10));
+		p_main_c_g.add(p_main_c_g_one);
+		p_main_c_g.add(p_main_c_g_two);
+		p_main_c_g.add(p_main_c_g_three);
+		p_main_c_g.add(p_main_c_g_four);
+		
+		List l_book_id_sub=new List(1,false);
+		List l_person_name_sub=new List(1,false);
+		List l_book_name_sub=new List(1,false);
+		List l_event_time_sub=new List(1,false);
+		
+		l_book_id=new List(0,false);
+		l_person_name=new List(0,false);
+		l_book_name=new List(0,false);
+		l_event_time=new List(0,false);
+		
+		l_book_id_sub.add("대여번호");
+		l_person_name_sub.add("회원이름");
+		l_book_name_sub.add("책이름");
+		l_event_time_sub.add("대여날짜");
 
-		ta_delay_list.setEditable(false);
+		while (rs.next()) {
+			l_book_id.add(""+rs.getInt("records_id"));
+			l_person_name.add(rs.getString("person_name"));
+			l_book_name.add(rs.getString("book_name"));
+			l_event_time.add(rs.getString("event_time"));
+		}
+		
+		p_main_c_g_one.add(l_book_id_sub,"North");
+		p_main_c_g_one.add(l_book_id,"Center");
+		p_main_c_g_two.add(l_person_name_sub,"North");
+		p_main_c_g_two.add(l_person_name,"Center");
+		p_main_c_g_three.add(l_book_name_sub,"North");
+		p_main_c_g_three.add(l_book_name,"Center");
+		p_main_c_g_four.add(l_event_time_sub,"North");
+		p_main_c_g_four.add(l_event_time,"Center");
+		
+		l_book_id.addItemListener(new ItemListener() {
 
-		ta_delay_list.setText(str);
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				int index = l_book_id.getSelectedIndex();
+				if(l_book_id.getSelectedIndex()==0) {
+					for(int i=0;i<l_book_id.getItemCount();i++) {
+						l_book_id.deselect(i);
+						l_person_name.deselect(i);
+						l_book_name.deselect(i);
+						l_event_time.deselect(i);
+					}
+					
+				} else if (index != 0) {
+					l_person_name.select(index);
+					l_book_name.select(index);
+					l_event_time.select(index);
+				} 
 
+			}
+		});
+		
+		l_person_name.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				int index = l_person_name.getSelectedIndex();
+				if(l_person_name.getSelectedIndex()==0) {
+					for(int i=0;i<l_book_id.getItemCount();i++) {
+						l_book_id.deselect(i);
+						l_person_name.deselect(i);
+						l_book_name.deselect(i);
+						l_event_time.deselect(i);
+					}
+					
+				} else if (index != 0) {
+					l_book_id.select(index);
+					l_book_name.select(index);
+					l_event_time.select(index);
+				} 
+			}
+		});
+		
+		l_book_name.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				int index = l_book_name.getSelectedIndex();
+				if(l_book_name.getSelectedIndex()==0) {
+					for(int i=0;i<l_book_id.getItemCount();i++) {
+						l_book_id.deselect(i);
+						l_person_name.deselect(i);
+						l_book_name.deselect(i);
+						l_event_time.deselect(i);
+					}
+					
+				} else if (index != 0) {
+					l_book_id.select(index);
+					l_person_name.select(index);
+					l_event_time.select(index);
+				} 
+				}
+		});
+		
+		l_event_time.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				int index = l_event_time.getSelectedIndex();
+				if(l_event_time.getSelectedIndex()==0) {
+					for(int i=0;i<l_book_id.getItemCount();i++) {
+						l_book_id.deselect(i);
+						l_person_name.deselect(i);
+						l_book_name.deselect(i);
+						l_event_time.deselect(i);
+					}
+					
+				} else if (index != 0) {
+					l_book_id.select(index);
+					l_book_name.select(index);
+					l_person_name.select(index);
+				} 
+			}
+		});
+		
+		
 		bt_delay = new Button("새로고침");
 		bt_delay.setSize(100, 100);
 		p_main_s.add(bt_delay, "South");
