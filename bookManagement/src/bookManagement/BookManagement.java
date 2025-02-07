@@ -684,22 +684,26 @@ public class BookManagement extends Frame implements ActionListener {
 		String key = tf_search_info_key.getText();
 		
 		if (cb_book.getState()) {
-			ps = con.prepareStatement("SELECT book_id, book_name, author, publisher, genre "
+			ps = con.prepareStatement("SELECT book_id, book_name, author, publisher, genre, "
+					+ "    CASE "
+					+ "        WHEN book_id IN (SELECT book_id FROM records) THEN '이미 대여됨' "
+					+ "        ELSE '대여 가능' "
+					+ "    END AS status "
 					+ "FROM book, genres "
 					+ "WHERE book_id BETWEEN min AND max "
-					+ "AND book_name LIKE ? "
+					+ "    AND book_name LIKE ? "
 					+ "ORDER BY book_id ASC");
 			ps.setString(1, "%" + key + "%");
 			rs = ps.executeQuery();
 			
 			ta_show_result.setText("");
 			
-			ta_show_result.append("ID\t제목\t작가\t출판사\t분야\n");
+			ta_show_result.append("ID\t제목\t작가\t출판사\t분야\t상태\n");
 			
 			while (rs.next()) {
 				String row = rs.getInt("book_id") + "\t" + rs.getString("book_name") + "\t"
 						+ rs.getString("author") + "\t" + rs.getString("publisher") + "\t"
-						+ rs.getString("genre") + "\n";
+						+ rs.getString("genre") + "\t" + rs.getString("status") +"\n";
 				ta_show_result.append(row);
 			}
 		}
