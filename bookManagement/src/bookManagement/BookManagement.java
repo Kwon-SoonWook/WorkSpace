@@ -53,6 +53,7 @@ public class BookManagement extends Frame implements ActionListener {
 	TextField tf_search_info_key;
 	TextArea ta_show_result;
 
+
 	// 연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
 	Panel p_main_c_n,p_main_c;
@@ -78,7 +79,7 @@ public class BookManagement extends Frame implements ActionListener {
 		book_lend = new MenuItem("책 대여 및 반납");
 		search_info = new MenuItem("검색하기");
 		delay_info = new MenuItem("연체 정보 보기");
-		book_topten = new MenuItem("대여 탑10 책 정보");
+		book_topten = new MenuItem("인기도서 Top10");
 		home = new MenuItem("처음으로");
 		
 		menu.add(user_add);
@@ -111,7 +112,7 @@ public class BookManagement extends Frame implements ActionListener {
 	
 	@Override
 	public Insets insets() {
-		Insets i = new Insets(60, 30, 20, 50);
+		Insets i = new Insets(60, 30, 40, 30);
 		return i;
 	}
 	@Override
@@ -434,8 +435,9 @@ public class BookManagement extends Frame implements ActionListener {
 	    ps.setString(2, tf_book_add_author.getText());
 	    ps.setString(3, tf_book_add_publisher.getText());
 	    ps.executeUpdate();
-	    lb_book_add_msg.setText(tf_book_add_bname.getText()+" 책의 신규 등록이 완료되었습니다.");   
-	    ta_book_add_list.setText(bookList());
+	    lb_book_add_msg.setText(tf_book_add_bname.getText()+" 책의 신규 등록이 완료되었습니다.");
+	    
+		ta_book_add_list.setText(bookList());
 	    ps.close();
 	    con.close();
 	}
@@ -681,8 +683,8 @@ public class BookManagement extends Frame implements ActionListener {
 		
 		Panel p_tf_and_bt = new Panel(new GridLayout(1, 4, 5, 5));
 		cg_options = new CheckboxGroup();
-		cb_book = new Checkbox("제목으로 책 찾기", cg_options, true);
-		cb_person = new Checkbox("이름으로 사람 찾기", cg_options, false);
+		cb_book = new Checkbox("도서명으로 검색", cg_options, true);
+		cb_person = new Checkbox("사람 이름으로 검색", cg_options, false);
 		tf_search_info_key = new TextField();
 		bt_search_info = new Button("검색");
 		p_tf_and_bt.add(cb_book);
@@ -693,6 +695,7 @@ public class BookManagement extends Frame implements ActionListener {
 		p_center_temp.add(p_top, "North");
 		
 		ta_show_result = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
+		ta_show_result.setEditable(false);
 		
 		p_center_temp.add(ta_show_result);
 		
@@ -725,12 +728,12 @@ public class BookManagement extends Frame implements ActionListener {
 			rs = ps.executeQuery();
 			
 			ta_show_result.setText("");
-			
-			ta_show_result.append("ID\t도서명\t\t\t\t저자\t출판사\t\t장르\t대여상태\n");
+
+			ta_show_result.append("책번호\t도서명\t\t\t\t저자\t출판사\t        장르\t대여상태\n");
 			
 			while (rs.next()) {
 				String row = rs.getInt("book_id") + "\t" + String.format("%-"+(48-(rs.getString("book_name").length()*2))+"s", rs.getString("book_name")) 
-						+ rs.getString("author") + "\t" + rs.getString("publisher") + "\t\t"
+						+ rs.getString("author") + "\t" + String.format("%-"+(20-(rs.getString("publisher").length()*2))+"s", rs.getString("publisher"))
 						+ rs.getString("genre") + "\t" + rs.getString("status") +"\n";
 				ta_show_result.append(row);
 			}
@@ -746,13 +749,13 @@ public class BookManagement extends Frame implements ActionListener {
 			rs = ps.executeQuery();
 			
 			ta_show_result.setText("");
-			
-			ta_show_result.append("ID\t이름\t전화번호\t주소\t출생연도\t대여가능도서 수\n");
+
+			ta_show_result.append("사용자ID\t 이름\t    연락처\t\t   주소\t      생년월일\t대여가능도서(최대 5권)\n");
 			
 			while (rs.next()) {
-				String row = rs.getInt("person_id") + "\t" + rs.getString("person_name") + "\t"
-						+ rs.getString("tel") + "\t" + rs.getString("addr") + "\t"
-						+ rs.getString("birth") + "\t\t" + rs.getInt("lend_limit") + "권(최대 5권)\n";
+				String row = rs.getInt("person_id") + "\t " + String.format("%-"+(15-(rs.getString("person_name").length()*2))+"s", rs.getString("person_name"))
+						+ rs.getString("tel") + "\t   " + String.format("%-"+(15-(rs.getString("addr").length()*2))+"s", rs.getString("addr"))
+						+ rs.getString("birth") + "\t" + rs.getInt("lend_limit") + "권 ("+(5-rs.getInt("lend_limit"))+"권 대여중)\n";
 				ta_show_result.append(row);
 			}
 		}
