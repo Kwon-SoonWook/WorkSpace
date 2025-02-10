@@ -530,12 +530,12 @@ public class BookManagement extends Frame implements ActionListener {
 		rs = ps.executeQuery();
 		String str = "책번호\t"
 					+String.format("%-"+(45-("도서명".length()*2))+"s", "도서명") + "\t\t"
-					+ String.format("%-"+(20-("출판사".length()*2))+"s", "출판사")
+					+ String.format("%-"+(20-("출판사".length()*2))+"s", "출판사") + "\t"
 					+ "저자\n";
 		while (rs.next()) {
 			str += rs.getString("book_id") + "\t"
-					+ String.format("%-"+(48-(rs.getString("book_name").length())*2)+"s", rs.getString("book_name")) 
-					+ String.format("%-"+(20-(rs.getString("publisher").length())*2)+"s", rs.getString("publisher"))+"\t"
+					+ String.format("%-"+(55-(rs.getString("book_name").length()*2))+"s", rs.getString("book_name"))+"\t" 
+					+ String.format("%-"+(20-(rs.getString("publisher").length()*2))+"s", rs.getString("publisher"))+"\t"
 					+ rs.getString("author") + "\n";
 		}
 		rs.close();
@@ -880,7 +880,7 @@ public class BookManagement extends Frame implements ActionListener {
 		p_top.add(p_tf_and_bt);
 		p_center_temp.add(p_top, "North");
 		
-		ta_show_result = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
+		ta_show_result = new TextArea("");
 		ta_show_result.setEditable(false);
 		
 		p_center_temp.add(ta_show_result);
@@ -915,11 +915,11 @@ public class BookManagement extends Frame implements ActionListener {
 			
 			ta_show_result.setText("");
 
-			ta_show_result.append("책번호\t도서명\t\t\t\t저자\t출판사\t        장르\t대여상태\n");
+			ta_show_result.append("책번호\t도서명\t\t\t\t\t저자\t\t\t출판사\t\t장르\t대여상태\n");
 			
 			while (rs.next()) {
-				String row = rs.getInt("book_id") + "\t" + String.format("%-"+(48-(rs.getString("book_name").length()*2))+"s", rs.getString("book_name")) 
-						+ rs.getString("author") + "\t" + String.format("%-"+(20-(rs.getString("publisher").length()*2))+"s", rs.getString("publisher"))
+				String row = rs.getInt("book_id") + "\t" + String.format("%-"+(55-(rs.getString("book_name").length()*2))+"s", rs.getString("book_name")) + "\t" 
+						+ String.format("%-"+(30-(rs.getString("author").length()*2))+"s", rs.getString("author")) + "\t" + String.format("%-"+(20-(rs.getString("publisher").length()*2))+"s", rs.getString("publisher")) + "\t"
 						+ rs.getString("genre") + "\t" + rs.getString("status") +"\n";
 				ta_show_result.append(row);
 			}
@@ -936,11 +936,11 @@ public class BookManagement extends Frame implements ActionListener {
 			
 			ta_show_result.setText("");
 
-			ta_show_result.append("사용자ID\t 이름\t    연락처\t   주소\t      생년월일\t대여가능도서(최대 5권)\n");
+			ta_show_result.append("사용자ID\t 이름\t\t연락처\t\t   주소\t\t    생년월일\t대여가능도서(최대 5권)\n");
 			
 			while (rs.next()) {
-				String row = rs.getInt("person_id") + "\t " + String.format("%-"+(15-(rs.getString("person_name").length()*2))+"s", rs.getString("person_name"))
-						+ rs.getString("tel") + "\t   " + String.format("%-"+(15-(rs.getString("addr").length()*2))+"s", rs.getString("addr"))
+				String row = rs.getInt("person_id") + "\t " + String.format("%-"+(23-(rs.getString("person_name").length()*2))+"s", rs.getString("person_name"))
+						+ rs.getString("tel") + "\t   " + String.format("%-"+(25-(rs.getString("addr").length()*2))+"s", rs.getString("addr"))
 						+ rs.getString("birth") + "\t" + rs.getInt("lend_limit") + "권 ("+(5-rs.getInt("lend_limit"))+"권 대여중)\n";
 				ta_show_result.append(row);
 			}
