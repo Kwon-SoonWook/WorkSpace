@@ -15,17 +15,23 @@ public class BookManagement extends Frame implements ActionListener {
 	//공통
 	Menu menu;
 	MenuBar menubar;
-	MenuItem user_add, book_add, book_delete, book_lend, search_info, delay_info, book_topten, home;
+	MenuItem user_add, user_update, book_add, book_delete, book_lend, search_info, delay_info, book_topten, home;
 	Panel p_main;
 	
 	//초기 화면
 	Label lb_main;
 	
-	//사용자 등록
+	//사용자 정보 등록
 	Label lb_user_add_title, lb_user_add_name, lb_user_add_birth, lb_user_add_addr, lb_user_add_tel, lb_user_add_msg;
 	TextField tf_user_add_name, tf_user_add_addr, tf_user_add_tel, tf_user_add_birth;
 	TextArea ta_user_list;
 	Button bt_user_add;
+	
+	//사용자 정보 수정
+	Label lb_user_update_title, lb_user_update_id, lb_user_update_name, lb_user_update_addr;
+	TextField tf_user_update_id, tf_user_update_name, tf_user_update_addr;
+	TextArea ta_user_update_list;
+	Button bt_user_update;
 	
 	//책 정보 등록
 	Label lb_book_add_title, lb_book_add_bname, lb_book_add_genre, lb_book_add_author, lb_book_add_publisher, lb_book_add_msg;
@@ -74,6 +80,7 @@ public class BookManagement extends Frame implements ActionListener {
 		menu = new Menu("메뉴");
 		menubar.add(menu);
 		user_add = new MenuItem("회원정보 등록");
+		user_update = new MenuItem("회원정보 수정");
 		book_add = new MenuItem("책 정보 등록");
 		book_delete = new MenuItem("책 정보 삭제");
 		book_lend = new MenuItem("책 대여 및 반납");
@@ -83,6 +90,7 @@ public class BookManagement extends Frame implements ActionListener {
 		home = new MenuItem("처음으로");
 		
 		menu.add(user_add);
+		menu.add(user_update);
 		menu.add(book_add);
 		menu.add(book_delete);
 		menu.add(book_lend);
@@ -93,6 +101,7 @@ public class BookManagement extends Frame implements ActionListener {
 		menu.add(home);
 		
 		user_add.addActionListener(this);
+		user_update.addActionListener(this);
 		book_add.addActionListener(this);
 		book_delete.addActionListener(this);
 		book_lend.addActionListener(this);
@@ -244,6 +253,26 @@ public class BookManagement extends Frame implements ActionListener {
 			}
 			this.add(p_main);
 			this.validate();
+		}else if (obj == bt_user_update) {
+			this.remove(p_main);
+			try {
+				userUpdate();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			this.add(p_main);
+			this.validate();
+		}else if(obj == user_update) {
+			this.remove(p_main);
+			try {
+				userUpdateView(userList());
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			this.add(p_main);
+			this.validate();
 		}
 	}
 	
@@ -261,12 +290,15 @@ public class BookManagement extends Frame implements ActionListener {
 	    String user = "scott";
 	    String pwd = "1234";
 	    Connection con = DriverManager.getConnection(url, user, pwd);
-	    sql = "select person_id, person_name, birth from person order by person_id asc";
+	    sql = "select person_id, person_name, addr, tel, birth from person order by person_id asc";
 	    ps = con.prepareStatement(sql);
 	    rs = ps.executeQuery();
-	    String str = "회원 번호\t이름\t      생년월일\n";
+	    String str = "회원번호   이름\t      주소         전화번호\t\t생년월일\n";
 	    while(rs.next()) {
-	       str = str+rs.getInt("person_id")+"\t            "+rs.getString("person_name")+"\t      "+rs.getString("birth")+"\n";
+	       str = str + rs.getInt("person_id")+"\t   "+String.format("%-"+(15-(rs.getString("person_name").length()*2))+"s", rs.getString("person_name"))
+	       + String.format("%-"+(15-(rs.getString("addr").length()*2))+"s", rs.getString("addr"))
+	       + rs.getString("tel") + "\t"
+	       + rs.getString("birth") + "\n";
 	    }
 	    return str;
 	}
@@ -289,7 +321,7 @@ public class BookManagement extends Frame implements ActionListener {
 	    tf_user_add_addr = new TextField();
 	    lb_user_add_birth = new Label("생년월일 : ");
 	    tf_user_add_birth = new TextField();
-	    ta_user_list = new TextArea(str,0,0,ta_book_lend_list.SCROLLBARS_VERTICAL_ONLY);
+	    ta_user_list = new TextArea(str);
 	    ta_user_list.setEditable(false);
 	      
 	    p_center_temp_west.add(new Label());
@@ -313,8 +345,9 @@ public class BookManagement extends Frame implements ActionListener {
 	    Panel p_south_south = new Panel();
 	    lb_user_add_msg = new Label("메세지 : ");
 	    bt_user_add = new Button("등록하기");
+	    bt_user_update = new Button("수정하기");
 	    p_south_temp.add(lb_user_add_msg);
-	    p_south_south.add(bt_user_add,"South");
+	    p_south_south.add(bt_user_add);
 	    p_south_temp.add(p_south_south,"South");
 	    p_main.add(p_south_temp, "South");
 	      
@@ -344,38 +377,110 @@ public class BookManagement extends Frame implements ActionListener {
 	    ps.close();
 	    con.close();
 	}
-	
-	//책 정보 현황 메서드
+
+
+	// 회원 정보 수정 화면 메서드
+	public void userUpdateView(String str) {
+
+		p_main = new Panel(new BorderLayout(10, 10));
+		lb_user_update_title = new Label("회원 정보 수정", Label.CENTER);
+		p_main.add(lb_user_update_title, "North");
+
+		Panel pCenter = new Panel(new BorderLayout(20, 20));
+		Panel pCenterWest = new Panel(new GridLayout(6, 2, 5, 15));
+		Panel pCenterCenter = new Panel(new BorderLayout(5, 5));
+
+		lb_user_update_id = new Label("회원 번호 : ");
+		tf_user_update_id = new TextField();
+		lb_user_update_name = new Label("회원 이름 : ");
+		tf_user_update_name = new TextField();
+		lb_user_update_addr = new Label("회원 주소 : ");
+		tf_user_update_addr = new TextField();
+		bt_user_update = new Button("수정하기");
+		ta_user_update_list = new TextArea(str, 0, 0, ta_book_lend_list.SCROLLBARS_VERTICAL_ONLY);
+		ta_user_update_list.setEditable(false);
+
+		pCenterWest.add(new Label());
+		pCenterWest.add(new Label());
+		pCenterWest.add(lb_user_update_id);
+		pCenterWest.add(tf_user_update_id);
+		pCenterWest.add(lb_user_update_name);
+		pCenterWest.add(tf_user_update_name);
+		pCenterWest.add(lb_user_update_addr);
+		pCenterWest.add(tf_user_update_addr);
+
+		pCenterCenter.add(new Label("회원 정보 현황", Label.CENTER), "North");
+		pCenterCenter.add(ta_user_update_list, "Center");
+		pCenter.add(pCenterWest, "West");
+		pCenter.add(pCenterCenter, "Center");
+		p_main.add(pCenter, "Center");
+
+		Panel pSouth = new Panel(new BorderLayout(5, 5));
+		Panel pSouthSouth = new Panel();
+		lb_user_add_msg = new Label("메세지 : ");
+		bt_user_update = new Button("등록하기");
+		pSouth.add(lb_user_add_msg);
+		pSouthSouth.add(bt_user_update, "South");
+		pSouth.add(pSouthSouth, "South");
+		p_main.add(pSouth, "South");
+
+		bt_user_update.addActionListener(this);
+
+	}
+
+	// 회원 정보 수정 메서드
+	public void userUpdate() throws Exception {
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+		String url = "jdbc:oracle:thin:@localhost:1521:xe";
+		String user = "scott";
+		String pwd = "1234";
+		Connection con = DriverManager.getConnection(url, user, pwd);
+		sql = "update person set person_name = ? , addr = ? where person_id = ?";
+		ps = con.prepareStatement(sql);
+		ps.setString(1, tf_user_update_name.getText());
+		ps.setString(2, tf_user_update_addr.getText());
+		ps.setString(3, tf_user_update_id.getText());
+		int count = ps.executeUpdate();
+		if (count > 0) {
+			lb_user_add_msg.setText(tf_user_update_id.getText() + "번 회원 정보가 수정 되었습니다.");
+		} else {
+			lb_user_add_msg.setText("회원 정보 변경에 실패 하였습니다.");
+		}
+
+		ta_user_update_list.setText(userList());
+	}
+
+	// 책 정보 현황 메서드
 	public String bookList() throws Exception {
 		Class.forName("oracle.jdbc.driver.OracleDriver");
 		String url = "jdbc:oracle:thin:@localhost:1521:xe";
 		String user = "scott";
 		String pwd = "1234";
-		
-		Connection con = DriverManager.getConnection(url,user,pwd);
+
+		Connection con = DriverManager.getConnection(url, user, pwd);
 		sql = "select book_id,book_name from book order by book_id asc";
 		ps = con.prepareStatement(sql);
 		rs = ps.executeQuery();
 		String str = "책 번호\t책 이름\n";
-		while(rs.next()) {
-			str += rs.getInt("book_id")+"\t"+rs.getString("book_name")+"\n";
-		}	
+		while (rs.next()) {
+			str += rs.getInt("book_id") + "\t" + rs.getString("book_name") + "\n";
+		}
 		rs.close();
 		ps.close();
 		con.close();
-		return str;	
+		return str;
 	}
-	
-	//책 정보 등록 화면 메서드
-	public void bookAddView(String str) {	
-		p_main = new Panel(new BorderLayout(10,10));
+
+	// 책 정보 등록 화면 메서드
+	public void bookAddView(String str) {
+		p_main = new Panel(new BorderLayout(10, 10));
 		lb_book_add_title = new Label("책 정보 등록", Label.CENTER);
 		p_main.add(lb_book_add_title, "North");
-		
-		Panel p_center_temp = new Panel(new GridLayout(1,2,20,20));
-		Panel p_center_temp_west = new Panel(new GridLayout(8,1,5,5));
-		Panel p_center_temp_center = new Panel(new BorderLayout(5,5));
-		
+
+		Panel p_center_temp = new Panel(new GridLayout(1, 2, 20, 20));
+		Panel p_center_temp_west = new Panel(new GridLayout(8, 1, 5, 5));
+		Panel p_center_temp_center = new Panel(new BorderLayout(5, 5));
+
 		lb_book_add_bname = new Label("책 이름 : ");
 		lb_book_add_genre = new Label("장르 : ");
 		lb_book_add_author = new Label("저자 : ");
@@ -384,9 +489,9 @@ public class BookManagement extends Frame implements ActionListener {
 		tf_book_add_genre = new TextField();
 		tf_book_add_author = new TextField();
 		tf_book_add_publisher = new TextField();
-		ta_book_add_list = new TextArea(str,0,0,ta_book_add_list.SCROLLBARS_VERTICAL_ONLY);
-		ta_book_add_list.setEditable(false);				
-		
+		ta_book_add_list = new TextArea(str, 0, 0, ta_book_add_list.SCROLLBARS_VERTICAL_ONLY);
+		ta_book_add_list.setEditable(false);
+
 		p_center_temp_west.add(lb_book_add_bname);
 		p_center_temp_west.add(tf_book_add_bname);
 		p_center_temp_west.add(lb_book_add_genre);
@@ -395,14 +500,14 @@ public class BookManagement extends Frame implements ActionListener {
 		p_center_temp_west.add(tf_book_add_author);
 		p_center_temp_west.add(lb_book_add_publisher);
 		p_center_temp_west.add(tf_book_add_publisher);
-		
-		p_center_temp_center.add(new Label("책 정보 현황",Label.CENTER), "North");
+
+		p_center_temp_center.add(new Label("책 정보 현황", Label.CENTER), "North");
 		p_center_temp_center.add(ta_book_add_list, "Center");
 		p_center_temp.add(p_center_temp_west, "West");
 		p_center_temp.add(p_center_temp_center, "Center");
 		p_main.add(p_center_temp, "Center");
-		
-		Panel p_south_temp = new Panel(new BorderLayout(5,5));
+
+		Panel p_south_temp = new Panel(new BorderLayout(5, 5));
 		Panel p_south_south = new Panel();
 		lb_book_add_msg = new Label("메세지 : ");
 		bt_book_add = new Button("등록하기");
@@ -410,7 +515,7 @@ public class BookManagement extends Frame implements ActionListener {
 		p_south_south.add(bt_book_add, "South");
 		p_south_temp.add(p_south_south, "South");
 		p_main.add(p_south_temp, "South");
-		
+
 		bt_book_add.addActionListener(this);
 	}
 	
@@ -750,7 +855,7 @@ public class BookManagement extends Frame implements ActionListener {
 			
 			ta_show_result.setText("");
 
-			ta_show_result.append("사용자ID\t 이름\t    연락처\t\t   주소\t      생년월일\t대여가능도서(최대 5권)\n");
+			ta_show_result.append("사용자ID\t 이름\t    연락처\t   주소\t      생년월일\t대여가능도서(최대 5권)\n");
 			
 			while (rs.next()) {
 				String row = rs.getInt("person_id") + "\t " + String.format("%-"+(15-(rs.getString("person_name").length()*2))+"s", rs.getString("person_name"))
