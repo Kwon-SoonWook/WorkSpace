@@ -2,9 +2,11 @@ package bookManagement;
 
 import java.awt.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.awt.event.*;
 import java.util.*;
 import java.awt.List;
+import java.util.Date;
 
 public class BookManagement extends Frame implements ActionListener {
 	//DB연동
@@ -28,8 +30,8 @@ public class BookManagement extends Frame implements ActionListener {
 	Button bt_user_add;
 	
 	//사용자 정보 수정
-	Label lb_user_update_title, lb_user_update_id, lb_user_update_name, lb_user_update_addr;
-	TextField tf_user_update_id, tf_user_update_name, tf_user_update_addr;
+	Label lb_user_update_title, lb_user_update_id, lb_user_update_name, lb_user_update_addr, lb_user_update_tel;
+	TextField tf_user_update_id, tf_user_update_name, tf_user_update_addr, tf_user_update_tel;
 	TextArea ta_user_update_list;
 	Button bt_user_update;
 	
@@ -61,8 +63,8 @@ public class BookManagement extends Frame implements ActionListener {
 
 
 	// 연체정보보기
-	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg;
-	Panel p_main_c_n,p_main_c;
+	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg,day_delay;
+	Panel p_main_c_n,p_main_c,p_main_s;
 	Button bt_delay;
 	List l_delay,l_book_id,l_person_name,l_book_name,l_event_time;
 
@@ -254,15 +256,12 @@ public class BookManagement extends Frame implements ActionListener {
 			this.add(p_main);
 			this.validate();
 		}else if (obj == bt_user_update) {
-			this.remove(p_main);
 			try {
 				userUpdate();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			this.add(p_main);
-			this.validate();
 		}else if(obj == user_update) {
 			this.remove(p_main);
 			try {
@@ -314,13 +313,13 @@ public class BookManagement extends Frame implements ActionListener {
 	    Panel p_center_temp_center = new Panel(new BorderLayout(5,5));
 	      
 	    lb_user_add_name = new Label("회원 이름 : ");
-	    tf_user_add_name = new TextField();
+	    tf_user_add_name = new TextField("");
 	    lb_user_add_tel = new Label("전화 번호 : ");
-	    tf_user_add_tel = new TextField();
+	    tf_user_add_tel = new TextField("");
 	    lb_user_add_addr = new Label("주소 : ");
-	    tf_user_add_addr = new TextField();
+	    tf_user_add_addr = new TextField("");
 	    lb_user_add_birth = new Label("생년월일 : ");
-	    tf_user_add_birth = new TextField();
+	    tf_user_add_birth = new TextField("");
 	    ta_user_list = new TextArea(str);
 	    ta_user_list.setEditable(false);
 	      
@@ -361,19 +360,23 @@ public class BookManagement extends Frame implements ActionListener {
 	    String user = "scott";
 	    String pwd = "1234";
 	    Connection con = DriverManager.getConnection(url,user,pwd);
-	    sql = "insert into person (person_name,tel,addr,birth) values(?,?,?,?)";
-	    ps = con.prepareStatement(sql);
-	    ps.setString(1, tf_user_add_name.getText());
-	    ps.setString(2, tf_user_add_tel.getText());
-	    ps.setString(3, tf_user_add_addr.getText());
-	    ps.setString(4, tf_user_add_birth.getText());
-	    ps.executeUpdate();
-	      
-	    lb_user_add_msg.setText(tf_user_add_name.getText()+"님의 등록이 완료되었습니다.");
-	     
-	    ta_user_list.setText(userList());
-	      
-	    rs.close();
+	    
+	    if(tf_user_add_name.getText().equals("") || tf_user_add_tel.getText().equals("") || tf_user_add_addr.getText().equals("") || tf_user_add_birth.getText().equals("")) {
+	    	lb_user_add_msg.setText("필수 입력 정보를 확인해주세요.");  	
+	    	
+	    }else {
+	    	sql = "insert into person (person_name,tel,addr,birth) values(?,?,?,?)";
+	    	ps = con.prepareStatement(sql);
+	    	ps.setString(1, tf_user_add_name.getText());
+	    	ps.setString(2, tf_user_add_tel.getText());
+	    	ps.setString(3, tf_user_add_addr.getText());
+	    	ps.setString(4, tf_user_add_birth.getText());
+	    	ps.executeUpdate();
+	    	
+	    	lb_user_add_msg.setText(tf_user_add_name.getText()+"님의 등록이 완료되었습니다.");  	
+	    	
+	    	ta_user_list.setText(userList());	
+	    }
 	    ps.close();
 	    con.close();
 	}
@@ -396,6 +399,8 @@ public class BookManagement extends Frame implements ActionListener {
 		tf_user_update_name = new TextField();
 		lb_user_update_addr = new Label("회원 주소 : ");
 		tf_user_update_addr = new TextField();
+		lb_user_update_tel = new Label("연락처 : ");
+		tf_user_update_tel = new TextField();
 		bt_user_update = new Button("수정하기");
 		ta_user_update_list = new TextArea(str, 0, 0, ta_book_lend_list.SCROLLBARS_VERTICAL_ONLY);
 		ta_user_update_list.setEditable(false);
@@ -408,6 +413,8 @@ public class BookManagement extends Frame implements ActionListener {
 		pCenterWest.add(tf_user_update_name);
 		pCenterWest.add(lb_user_update_addr);
 		pCenterWest.add(tf_user_update_addr);
+		pCenterWest.add(lb_user_update_tel);
+		pCenterWest.add(tf_user_update_tel);
 
 		pCenterCenter.add(new Label("회원 정보 현황", Label.CENTER), "North");
 		pCenterCenter.add(ta_user_update_list, "Center");
@@ -418,7 +425,7 @@ public class BookManagement extends Frame implements ActionListener {
 		Panel pSouth = new Panel(new BorderLayout(5, 5));
 		Panel pSouthSouth = new Panel();
 		lb_user_add_msg = new Label("메세지 : ");
-		bt_user_update = new Button("등록하기");
+		bt_user_update = new Button("수정하기");
 		pSouth.add(lb_user_add_msg);
 		pSouthSouth.add(bt_user_update, "South");
 		pSouth.add(pSouthSouth, "South");
@@ -435,18 +442,18 @@ public class BookManagement extends Frame implements ActionListener {
 		String user = "scott";
 		String pwd = "1234";
 		Connection con = DriverManager.getConnection(url, user, pwd);
-		sql = "update person set person_name = ? , addr = ? where person_id = ?";
+		sql = "update person set person_name = ? , addr = ?, tel = ? where person_id = ?";
 		ps = con.prepareStatement(sql);
 		ps.setString(1, tf_user_update_name.getText());
 		ps.setString(2, tf_user_update_addr.getText());
-		ps.setString(3, tf_user_update_id.getText());
+		ps.setString(3, tf_user_update_tel.getText());
+		ps.setString(4, tf_user_update_id.getText());
 		int count = ps.executeUpdate();
 		if (count > 0) {
 			lb_user_add_msg.setText(tf_user_update_id.getText() + "번 회원 정보가 수정 되었습니다.");
 		} else {
 			lb_user_add_msg.setText("회원 정보 변경에 실패 하였습니다.");
 		}
-
 		ta_user_update_list.setText(userList());
 	}
 
@@ -485,10 +492,10 @@ public class BookManagement extends Frame implements ActionListener {
 		lb_book_add_genre = new Label("장르 : ");
 		lb_book_add_author = new Label("저자 : ");
 		lb_book_add_publisher = new Label("출판사 : ");
-		tf_book_add_bname = new TextField();
-		tf_book_add_genre = new TextField();
-		tf_book_add_author = new TextField();
-		tf_book_add_publisher = new TextField();
+		tf_book_add_bname = new TextField("");
+		tf_book_add_genre = new TextField("");
+		tf_book_add_author = new TextField("");
+		tf_book_add_publisher = new TextField("");
 		ta_book_add_list = new TextArea(str, 0, 0, ta_book_add_list.SCROLLBARS_VERTICAL_ONLY);
 		ta_book_add_list.setEditable(false);
 
@@ -531,18 +538,21 @@ public class BookManagement extends Frame implements ActionListener {
 	    genreId.put("철학",	 "philosophy_sq.NEXTVAL");
 	    genreId.put("문학",	 "literature_sq.NEXTVAL");
 	    genreId.put("과학",	 "science_sq.NEXTVAL");
-	      
-	    sql = "insert into book (book_id, book_name, author, publisher) "
-	     	+ "values (" + genreId.get(tf_book_add_genre.getText()) + " ,?,?,?)";
-	    ps = con.prepareStatement(sql);
-	      
-	    ps.setString(1, tf_book_add_bname.getText());
-	    ps.setString(2, tf_book_add_author.getText());
-	    ps.setString(3, tf_book_add_publisher.getText());
-	    ps.executeUpdate();
-	    lb_book_add_msg.setText(tf_book_add_bname.getText()+" 책의 신규 등록이 완료되었습니다.");
-	    
-		ta_book_add_list.setText(bookList());
+	    if(tf_book_add_bname.getText().equals("") || tf_book_add_author.getText().equals("") || tf_book_add_publisher.getText().equals("")) {
+	    	lb_book_add_msg.setText("입력되지 않은 정보가 있습니다. 입력 정보를 확인해주세요.");
+	    }else {
+	    	sql = "insert into book (book_id, book_name, author, publisher) "
+	    			+ "values (" + genreId.get(tf_book_add_genre.getText()) + " ,?,?,?)";
+	    	ps = con.prepareStatement(sql);
+	    	
+	    	ps.setString(1, tf_book_add_bname.getText());
+	    	ps.setString(2, tf_book_add_author.getText());
+	    	ps.setString(3, tf_book_add_publisher.getText());
+	    	ps.executeUpdate();
+	    	lb_book_add_msg.setText(tf_book_add_bname.getText()+" 책의 신규 등록이 완료되었습니다.");
+	    	
+	    	ta_book_add_list.setText(bookList());    	
+	    }
 	    ps.close();
 	    con.close();
 	}
@@ -557,7 +567,7 @@ public class BookManagement extends Frame implements ActionListener {
 		Panel p_center_temp_center = new Panel(new BorderLayout(5,5));
 		
 		lb_book_delete_bid = new Label("삭제할 책 번호 : ");
-		tf_book_delete_bid = new TextField();
+		tf_book_delete_bid = new TextField("");
 		ta_book_delete_list = new TextArea(str,0,0,ta_book_lend_list.SCROLLBARS_VERTICAL_ONLY);
 		ta_book_delete_list.setEditable(false);		
 		
@@ -595,20 +605,25 @@ public class BookManagement extends Frame implements ActionListener {
 		String user ="scott";
 		String pwd ="1234";
 		Connection con = DriverManager.getConnection(url, user, pwd);
-		sql = "delete from records where book_id=?";
-		ps = con.prepareStatement(sql);
-		ps.setString(1, tf_book_delete_bid.getText());
-		ps.executeUpdate();	
-		sql = "delete from book where book_id=? ";
-		ps = con.prepareStatement(sql);
-		ps.setString(1, tf_book_delete_bid.getText());
-		int count = ps.executeUpdate();
-		if(count == 0) {
-			lb_book_delete_msg.setText("해당 책은 등록되지 않았습니다.");
+		if(tf_book_delete_bid.getText().equals("")) {
+			lb_book_delete_msg.setText("책 번호가 입력되지 않았습니다.");			
 		}else {
+			sql = "delete from records where book_id=?";
+			ps = con.prepareStatement(sql);
+			ps.setString(1, tf_book_delete_bid.getText());
+			ps.executeUpdate();	
+			sql = "delete from book where book_id=? ";
+			ps = con.prepareStatement(sql);
+			ps.setString(1, tf_book_delete_bid.getText());
+			int count = ps.executeUpdate();
+			if(count == 0) {
+				lb_book_delete_msg.setText("해당 책에 대한 정보가 등록되어 있지 않습니다. 입력한 책 번호를 확인해주세요.");
+			}else {
 				lb_book_delete_msg.setText(tf_book_delete_bid.getText()+" 번 책의 정보가 삭제 되었습니다.");
+			}
+			ta_book_delete_list.setText(bookList());
+			
 		}
-		ta_book_delete_list.setText(bookList());
 		ps.close();
 		con.close();
 	}
@@ -875,12 +890,28 @@ public class BookManagement extends Frame implements ActionListener {
 		
 		p_main = new Panel(new BorderLayout(10, 10));
 		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);; 
-		p_main.add(lb_delay_info_title, "North");
+		
 		p_main_c = new Panel(new BorderLayout(5, 5));
-		Panel p_main_s = new Panel(new FlowLayout());
-		 
+		p_main_s = new Panel(new GridLayout(1,3));
+		Panel p_main_n=new Panel(new GridLayout(1,3));
+		
+		//새로고침 버튼
+		bt_delay = new Button("새로고침");
+		bt_delay.setSize(100, 100);
+		
+		//현재 시간 넣기
+
+		
+		
 		p_main.add(p_main_c, "Center");
-		p_main.add(p_main_s, "South"); 
+		p_main.add(p_main_s, "South");
+		p_main.add(p_main_n,"North");
+		
+		
+		p_main_n.add(new Label(" "));
+		p_main_n.add(lb_delay_info_title);
+		p_main_n.add(bt_delay);
+		
 		
 		Panel p_main_c_n=new Panel(new GridLayout(1,4,10,10));
 		p_main_c.add(p_main_c_n,"North");
@@ -889,6 +920,9 @@ public class BookManagement extends Frame implements ActionListener {
 		Label l_person_name_sub=new Label("회원이름");
 		Label l_book_name_sub=new Label("대여날짜");
 		Label l_event_time_sub=new Label("책제목");
+		
+
+		
 		p_main_c_n.add(l_book_id_sub);
 		p_main_c_n.add(l_person_name_sub);
 		p_main_c_n.add(l_book_name_sub);
@@ -896,9 +930,9 @@ public class BookManagement extends Frame implements ActionListener {
 		
 		l_delay=new List(0,false);
 		
-		bt_delay = new Button("새로고침");
-		bt_delay.setSize(100, 100);
-		p_main_s.add(bt_delay, "South");
+		day_delay = new Label("연체일 : ");
+		
+		
 
 		bt_delay.addActionListener(this);
 		p_main_c.revalidate();
@@ -906,8 +940,7 @@ public class BookManagement extends Frame implements ActionListener {
 		
 		
 	}
-
-
+	
 	public void delayInfo() throws Exception{
 		Class.forName("oracle.jdbc.driver.OracleDriver");
 		String url = "jdbc:oracle:thin:@localhost:1521:xe";
@@ -923,15 +956,65 @@ public class BookManagement extends Frame implements ActionListener {
 		
 		p_main_c.add(l_delay,"Center");
 		String blank=" ";
-
+		int a=40;
+		int b=40;
+		
+		Date now=new Date();
+		SimpleDateFormat time_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String formattedNow=time_format.format(now);
+		Label l_time=new Label("현재시간 : "+formattedNow);
+		
+		
+		p_main_s.add(l_time);
+		p_main_s.add(new Label(" "));
+		
+		List time_cal=new List(0,false);
+		
 		while (rs.next()) {
-			int a=43;
-			int b=43;
+			
 			a-=String.valueOf(rs.getInt("records_id")).length();
-			b-=(rs.getString("person_name").length()*4);
+			b-=3*(rs.getString("person_name").length());
 			l_delay.add(rs.getInt("records_id")+blank.repeat(a)+rs.getString("person_name")+blank.repeat(b)+rs.getString("event_time")+blank.repeat(22)+rs.getString("book_name"));
-
+			a=40;
+			b=40;
+			time_cal.add(rs.getString("event_time"));
 		}
+		
+		
+		l_delay.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange()==ItemEvent.SELECTED) {
+					p_main_s.remove(day_delay);
+					
+					time_cal.select(l_delay.getSelectedIndex());
+					String selectedString=time_cal.getSelectedItem();
+					
+					
+					try {
+						SimpleDateFormat time_format = new SimpleDateFormat("yyyy-MM-dd"); 
+						Date selectedDate=time_format.parse(selectedString);
+						Date now=new Date();
+						
+						long delay_time=(now.getTime()-selectedDate.getTime())/(24*60*60*1000);
+						
+						day_delay = new Label("연체일 : "+delay_time);
+						p_main_s.add(day_delay);
+						
+						p_main_c.revalidate();
+						p_main_c.repaint();
+					} catch (Exception ex) {
+						ex.printStackTrace();
+						p_main_c.revalidate();
+						p_main_c.repaint();
+					}
+					
+				}
+				
+			}
+		});
+		
 		rs.close();
 		ps.close();
 		con.close();
