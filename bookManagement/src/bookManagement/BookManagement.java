@@ -63,10 +63,10 @@ public class BookManagement extends Frame implements ActionListener {
 
 
 	// 연체정보보기
-	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg,day_delay;
-	Panel p_main_c_n,p_main_c,p_main_s;
+	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg, day_delay, lb_time;
+	Panel p_main_c_n, p_main_c, p_main_s;
 	Button bt_delay;
-	List l_delay,l_book_id,l_person_name,l_book_name,l_event_time;
+	List l_delay, l_book_id, l_person_name, l_book_name, l_event_time;
 
 	// 인기순위
 	Label lb_rank_info_title;
@@ -953,61 +953,53 @@ public class BookManagement extends Frame implements ActionListener {
 	
 	// 연체정보 화면 메서드
 	public void delayInfoView() {
-		
+
 		p_main = new Panel(new BorderLayout(10, 10));
-		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);; 
-		
+		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);
+		;
+
 		p_main_c = new Panel(new BorderLayout(5, 5));
-		p_main_s = new Panel(new GridLayout(1,3));
-		Panel p_main_n=new Panel(new GridLayout(1,3));
-		
-		//새로고침 버튼
+		p_main_s = new Panel(new GridLayout(1, 3));
+		Panel p_main_n = new Panel(new GridLayout(1, 3));
+
+		// 새로고침 버튼
 		bt_delay = new Button("새로고침");
 		bt_delay.setSize(100, 100);
-		
-		//현재 시간 넣기
 
-		
-		
+		// 현재 시간 넣기
+
 		p_main.add(p_main_c, "Center");
 		p_main.add(p_main_s, "South");
-		p_main.add(p_main_n,"North");
-		
-		
+		p_main.add(p_main_n, "North");
+
 		p_main_n.add(new Label(" "));
 		p_main_n.add(lb_delay_info_title);
 		p_main_n.add(bt_delay);
-		
-		
-		Panel p_main_c_n=new Panel(new GridLayout(1,4,10,10));
-		p_main_c.add(p_main_c_n,"North");
-		
-		Label l_book_id_sub=new Label("대여번호");
-		Label l_person_name_sub=new Label("회원이름");
-		Label l_book_name_sub=new Label("대여날짜");
-		Label l_event_time_sub=new Label("책제목");
-		
 
-		
+		Panel p_main_c_n = new Panel(new GridLayout(1, 4, 10, 10));
+		p_main_c.add(p_main_c_n, "North");
+
+		Label l_book_id_sub = new Label("대여번호");
+		Label l_person_name_sub = new Label("회원이름");
+		Label l_book_name_sub = new Label("대여날짜");
+		Label l_event_time_sub = new Label("책제목");
+
 		p_main_c_n.add(l_book_id_sub);
 		p_main_c_n.add(l_person_name_sub);
 		p_main_c_n.add(l_book_name_sub);
 		p_main_c_n.add(l_event_time_sub);
-		
-		l_delay=new List(0,false);
-		
+
+		l_delay = new List(0, false);
+
 		day_delay = new Label("연체일 : ");
-		
-		
 
 		bt_delay.addActionListener(this);
 		p_main_c.revalidate();
 		p_main_c.repaint();
-		
-		
+
 	}
-	
-	public void delayInfo() throws Exception{
+
+	public void delayInfo() throws Exception {
 		Class.forName("oracle.jdbc.driver.OracleDriver");
 		String url = "jdbc:oracle:thin:@localhost:1521:xe";
 		String user = "scott";
@@ -1019,55 +1011,53 @@ public class BookManagement extends Frame implements ActionListener {
 				+ "and r.person_id=p.person_id\r\n" + "and event_time+14>systimestamp";// 대여한지 2주 지난 회원 확인
 		ps = con.prepareStatement(sql);
 		rs = ps.executeQuery();
-		
-		p_main_c.add(l_delay,"Center");
-		String blank=" ";
-		int a=40;
-		int b=40;
-		
-		Date now=new Date();
-		SimpleDateFormat time_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String formattedNow=time_format.format(now);
-		Label l_time=new Label("현재시간 : "+formattedNow);
-		
-		
-		p_main_s.add(l_time);
+
+		p_main_c.add(l_delay, "Center");
+		String blank = " ";
+		int a = 40;
+		int b = 40;
+
+		lb_time = new Label(" ");
+
+		p_main_s.add(lb_time);
+
+		startTimer();
+
 		p_main_s.add(new Label(" "));
-		
-		List time_cal=new List(0,false);
-		
+
+		List time_cal = new List(0, false);
+
 		while (rs.next()) {
-			
-			a-=String.valueOf(rs.getInt("records_id")).length();
-			b-=3*(rs.getString("person_name").length());
-			l_delay.add(rs.getInt("records_id")+blank.repeat(a)+rs.getString("person_name")+blank.repeat(b)+rs.getString("event_time")+blank.repeat(22)+rs.getString("book_name"));
-			a=40;
-			b=40;
+
+			a -= String.valueOf(rs.getInt("records_id")).length();
+			b -= 3 * (rs.getString("person_name").length());
+			l_delay.add(rs.getInt("records_id") + blank.repeat(a) + rs.getString("person_name") + blank.repeat(b)
+					+ rs.getString("event_time") + blank.repeat(22) + rs.getString("book_name"));
+			a = 40;
+			b = 40;
 			time_cal.add(rs.getString("event_time"));
 		}
-		
-		
+
 		l_delay.addItemListener(new ItemListener() {
-			
+
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if(e.getStateChange()==ItemEvent.SELECTED) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
 					p_main_s.remove(day_delay);
-					
+
 					time_cal.select(l_delay.getSelectedIndex());
-					String selectedString=time_cal.getSelectedItem();
-					
-					
+					String selectedString = time_cal.getSelectedItem();
+
 					try {
-						SimpleDateFormat time_format = new SimpleDateFormat("yyyy-MM-dd"); 
-						Date selectedDate=time_format.parse(selectedString);
-						Date now=new Date();
-						
-						long delay_time=(now.getTime()-selectedDate.getTime())/(24*60*60*1000);
-						
-						day_delay = new Label("연체일 : "+delay_time);
+						SimpleDateFormat time_format = new SimpleDateFormat("yyyy-MM-dd");
+						Date selectedDate = time_format.parse(selectedString);
+						Date now = new Date();
+
+						long delay_time = (now.getTime() - selectedDate.getTime()) / (24 * 60 * 60 * 1000);
+
+						day_delay = new Label("연체일 : " + delay_time);
 						p_main_s.add(day_delay);
-						
+
 						p_main_c.revalidate();
 						p_main_c.repaint();
 					} catch (Exception ex) {
@@ -1075,15 +1065,37 @@ public class BookManagement extends Frame implements ActionListener {
 						p_main_c.revalidate();
 						p_main_c.repaint();
 					}
-					
+
 				}
-				
+
 			}
 		});
-		
+
 		rs.close();
 		ps.close();
 		con.close();
+	}
+
+	public void startTimer() {
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					while (true) {
+						updateTimeLabel();
+						Thread.sleep(1000);
+					}
+				} catch (Exception e) {
+					return;
+				}
+			}
+		}).start();
+	}
+
+	public void updateTimeLabel() {
+		Date now = new Date();
+		SimpleDateFormat time_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String formattedNow = time_format.format(now);
+		EventQueue.invokeLater(() -> lb_time.setText("현재시간 : " + formattedNow));
 	}
 
 
