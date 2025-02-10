@@ -59,7 +59,7 @@ public class BookManagement extends Frame implements ActionListener {
 
 	// 연체정보보기
 	Label lb_delay_info_title, lb_delay_info_bname, lb_delay_info_msg,day_delay;
-	Panel p_main_c_n,p_main_c,p_main_s;
+	Panel p_main_c_n,p_main_c,p_main_s,p_main_s_one,p_main_s_two;
 	Button bt_delay;
 	List l_delay,l_book_id,l_person_name,l_book_name,l_event_time;
 
@@ -774,15 +774,16 @@ public class BookManagement extends Frame implements ActionListener {
 		lb_delay_info_title = new Label("연체 회원 정보", Label.CENTER);; 
 		
 		p_main_c = new Panel(new BorderLayout(5, 5));
-		p_main_s = new Panel(new GridLayout(1,3));
-		Panel p_main_n=new Panel(new GridLayout(1,3));
+		p_main_s = new Panel(new GridLayout(2,1));
+		p_main_s_one = new Panel(new GridLayout(1,3));
+		p_main_s_two = new Panel(new FlowLayout());
+		
+		
+		Panel p_main_n=new Panel(new FlowLayout());
 		
 		//새로고침 버튼
 		bt_delay = new Button("새로고침");
 		bt_delay.setSize(100, 100);
-		
-		//현재 시간 넣기
-
 		
 		
 		p_main.add(p_main_c, "Center");
@@ -790,9 +791,9 @@ public class BookManagement extends Frame implements ActionListener {
 		p_main.add(p_main_n,"North");
 		
 		
-		p_main_n.add(new Label(" "));
+		
 		p_main_n.add(lb_delay_info_title);
-		p_main_n.add(bt_delay);
+		
 		
 		
 		Panel p_main_c_n=new Panel(new GridLayout(1,4,10,10));
@@ -813,8 +814,9 @@ public class BookManagement extends Frame implements ActionListener {
 		l_delay=new List(0,false);
 		
 		day_delay = new Label("연체일 : ");
-		
-		
+		p_main_s.add(p_main_s_one);
+		p_main_s.add(p_main_s_two);
+		p_main_s_two.add(bt_delay);
 
 		bt_delay.addActionListener(this);
 		p_main_c.revalidate();
@@ -847,8 +849,9 @@ public class BookManagement extends Frame implements ActionListener {
 		Label l_time=new Label("현재시간 : "+formattedNow);
 		
 		
-		p_main_s.add(l_time);
-		p_main_s.add(new Label(" "));
+		p_main_s_one.add(l_time);
+		p_main_s_one.add(new Label(" "));
+		
 		
 		List time_cal=new List(0,false);
 		
@@ -868,7 +871,7 @@ public class BookManagement extends Frame implements ActionListener {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange()==ItemEvent.SELECTED) {
-					p_main_s.remove(day_delay);
+					p_main_s_one.remove(day_delay);
 					
 					time_cal.select(l_delay.getSelectedIndex());
 					String selectedString=time_cal.getSelectedItem();
@@ -882,7 +885,7 @@ public class BookManagement extends Frame implements ActionListener {
 						long delay_time=(now.getTime()-selectedDate.getTime())/(24*60*60*1000);
 						
 						day_delay = new Label("연체일 : "+delay_time);
-						p_main_s.add(day_delay);
+						p_main_s_one.add(day_delay);
 						
 						p_main_c.revalidate();
 						p_main_c.repaint();
@@ -896,6 +899,9 @@ public class BookManagement extends Frame implements ActionListener {
 				
 			}
 		});
+		
+		
+		
 		
 		rs.close();
 		ps.close();
