@@ -1068,7 +1068,7 @@ public class BookManagement extends Frame implements ActionListener {
 		con.close();
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception { //∏ﬁ¿Œ
 		BookManagement bm = new BookManagement();
 		bm.setSize(600, 400);
 		bm.setVisible(true);
