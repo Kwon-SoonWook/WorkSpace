@@ -8,6 +8,8 @@ import java.util.*;
 import java.awt.List;
 import java.util.Date;
 
+import javax.imageio.plugins.bmp.BMPImageWriteParam;
+
 public class BookManagement extends Frame implements ActionListener {
 	//DB연동
 	PreparedStatement ps, ps2, ps3;
@@ -17,11 +19,21 @@ public class BookManagement extends Frame implements ActionListener {
 	//공통
 	Menu menu;
 	MenuBar menubar;
-	MenuItem user_add, user_update, book_add, book_delete, book_lend, search_info, delay_info, book_topten, home;
+	MenuItem user_add, user_update, book_add, book_delete, book_lend, search_info, delay_info, book_topten, logout;
 	Panel p_main;
 	
+	//로그인 화면
+	Label lb_login_title, lb_login_id, lb_login_pw, lb_login_msg;
+	TextField tf_login_id, tf_login_pw;
+	Button bt_login, bt_login_add;
+
+	//회원가입 화면
+	Label lb_admin_add_title, lb_admin_add_id, lb_admin_add_pw, lb_admin_add_key, lb_admin_add_msg;
+	TextField tf_admin_add_id, tf_admin_add_pw, tf_admin_add_key;
+	Button bt_admin_add, bt_admin_add_home;
+	
 	//초기 화면
-	Label lb_main;
+	Label lb_main_msg1, lb_main_msg2;
 	
 	//사용자 정보 등록
 	Label lb_user_add_title, lb_user_add_name, lb_user_add_birth, lb_user_add_addr, lb_user_add_tel, lb_user_add_msg;
@@ -72,15 +84,16 @@ public class BookManagement extends Frame implements ActionListener {
 	Label lb_rank_info_title;
 	Panel p_main_rank, p_main_rank_center;
 	
+	boolean login_info = false;
 	
 	
-	public BookManagement() throws Exception{
-		mainScreen();
-		this.add(p_main);
+	public BookManagement(boolean login) throws Exception{
+		loginView();
 		menubar = new MenuBar();
 		this.setMenuBar(menubar);
 		menu = new Menu("메뉴");
 		menubar.add(menu);
+		this.add(p_main);
 		user_add = new MenuItem("회원정보 등록");
 		user_update = new MenuItem("회원정보 수정");
 		book_add = new MenuItem("책 정보 등록");
@@ -89,7 +102,17 @@ public class BookManagement extends Frame implements ActionListener {
 		search_info = new MenuItem("검색하기");
 		delay_info = new MenuItem("연체 정보 보기");
 		book_topten = new MenuItem("인기도서 Top10");
-		home = new MenuItem("처음으로");
+		logout = new MenuItem("로그아웃");
+		
+		user_add.setEnabled(login_info);
+		user_update.setEnabled(login_info);
+		book_add.setEnabled(login_info);
+		book_delete.setEnabled(login_info);
+		book_lend.setEnabled(login_info);
+		search_info.setEnabled(login_info);
+		delay_info.setEnabled(login_info);
+		book_topten.setEnabled(login_info);
+		logout.setEnabled(login_info);
 		
 		menu.add(user_add);
 		menu.add(user_update);
@@ -100,7 +123,7 @@ public class BookManagement extends Frame implements ActionListener {
 		menu.add(delay_info);
 		menu.add(book_topten);
 		menu.addSeparator();
-		menu.add(home);
+		menu.add(logout);
 		
 		user_add.addActionListener(this);
 		user_update.addActionListener(this);
@@ -110,15 +133,16 @@ public class BookManagement extends Frame implements ActionListener {
 		search_info.addActionListener(this);
 		delay_info.addActionListener(this);
 		book_topten.addActionListener(this);
-		home.addActionListener(this);
+		logout.addActionListener(this);
 		this.addWindowListener(
-			new WindowAdapter() {
-				@Override
-				public void windowClosing(WindowEvent e) {
-					System.exit(0);
+				new WindowAdapter() {
+					@Override
+					public void windowClosing(WindowEvent e) {
+						System.exit(0);
+					}
 				}
-			}
 		);
+
 	}
 	
 	@Override
@@ -197,9 +221,9 @@ public class BookManagement extends Frame implements ActionListener {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}else if(obj == home) {
+		}else if(obj == logout) {
 			this.remove(p_main);
-			mainScreen();
+			logout();
 			this.add(p_main);
 			this.validate();
 		}else if(obj == bt_user_add) {
@@ -280,14 +304,256 @@ public class BookManagement extends Frame implements ActionListener {
 				e1.printStackTrace();
 			}
 			
+		}else if(obj == bt_login) {
+			try {
+				login();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			if(login_info == true) {
+				this.remove(p_main);
+				mainScreen();
+				this.add(p_main);
+				this.validate();
+			}
+		}else if(obj == bt_login_add) {
+			this.remove(p_main);
+			adminAddView();
+			this.add(p_main);
+			this.validate();
+		}else if(obj == bt_admin_add) {
+			try {
+				adminAdd();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else if(obj == bt_admin_add_home) {
+			this.remove(p_main);
+			loginView();
+			this.add(p_main);
+			this.validate();
 		}
 	}
 	
-	//메인 화면 메서드
 	public void mainScreen() {
 		p_main = new Panel(new BorderLayout());
-		lb_main = new Label("도서관리 프로그램 v3.0", Label.CENTER);
-		p_main.add(lb_main);
+		lb_main_msg1 = new Label("도서관리 프로그램 v3.0", Label.CENTER);
+		lb_main_msg2 = new Label("상단 메뉴에서 사용할 기능을 선택해주세요.", Label.CENTER);
+		p_main.add(lb_main_msg1);
+		p_main.add(lb_main_msg2);
+
+		this.add(p_main);
+	}
+	
+	//메인 화면 메서드
+	public void loginView() {
+		p_main = new Panel(new BorderLayout());
+		Panel p_main_north = new Panel(new GridLayout(4, 1, 10, 10));
+		Panel p_main_east = new Panel(new GridLayout(1, 1, 10, 10));
+		Panel p_main_west = new Panel(new GridLayout(1, 1, 10, 10));
+		Panel p_main_south = new Panel(new GridLayout(4, 1, 10, 10));
+		Panel p_main_center = new Panel(new GridLayout(2, 3, 10, 10));
+		
+		lb_login_title = new Label("도서관리 프로그램 v3.0", Label.CENTER);
+		lb_login_msg = new Label("", Label.CENTER);
+		lb_login_id = new Label("          ID   : ");
+		lb_login_pw = new Label("          PW : ");
+		tf_login_id = new TextField("");
+		tf_login_pw = new TextField("");
+		tf_login_pw.setEchoChar('*');
+		bt_login = new Button("로그인");
+		bt_login_add = new Button("회원가입");	
+		
+		p_main_north.add(new Label());
+		p_main_north.add(new Label());
+		p_main_north.add(lb_login_title);
+		p_main_north.add(new Label());		
+		p_main_east.add(new Label("                                            "));
+		p_main_west.add(new Label("                                            "));
+		p_main_south.add(new Label());
+		p_main_south.add(lb_login_msg);
+		p_main_south.add(new Label());
+		p_main_south.add(new Label());								
+	
+		
+		p_main_center.add(lb_login_id);
+		p_main_center.add(tf_login_id);
+		p_main_center.add(bt_login);
+		p_main_center.add(lb_login_pw);
+		p_main_center.add(tf_login_pw);
+		p_main_center.add(bt_login_add);
+		
+		
+		p_main.add(p_main_center, "Center");
+		p_main.add(p_main_north, "North");
+		p_main.add(p_main_east, "East");
+		p_main.add(p_main_west, "West");
+		p_main.add(p_main_south, "South");
+		
+		this.add(p_main);
+		
+		bt_login.addActionListener(this);
+		bt_login_add.addActionListener(this);		
+	}
+	
+	//관리자 로그인 메서드
+	public void login() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+	    String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	    String user = "scott";
+	    String pwd = "1234";
+	    Connection con = DriverManager.getConnection(url, user, pwd);
+	    sql = "select * from admin where admin_id = ? and admin_pw = ?";
+	    ps = con.prepareStatement(sql);
+	    ps.setString(1, tf_login_id.getText());
+	    ps.setString(2, tf_login_pw.getText());
+	    rs = ps.executeQuery();
+	    if(rs.next()) {
+			login_info = true;
+			user_add.setEnabled(login_info);
+			user_update.setEnabled(login_info);
+			book_add.setEnabled(login_info);
+			book_delete.setEnabled(login_info);
+			book_lend.setEnabled(login_info);
+			search_info.setEnabled(login_info);
+			delay_info.setEnabled(login_info);
+			book_topten.setEnabled(login_info);
+			logout.setEnabled(login_info);
+	    }else {
+	    	if(tf_login_id.getText().equals("")||tf_login_pw.getText().equals("")) {
+	    		lb_login_msg.setText("로그인 정보가 입력되지 않았습니다. 입력한 로그인 정보를 확인해주세요.");
+	    	}else {
+	    		lb_login_msg.setText("로그인 정보가 일치하지 않습니다.");	    		
+	    	}
+	    }
+	    rs.close();
+	    ps.close();
+	    con.close();
+	}
+	
+	//로그아웃 메서드
+	public void logout() {
+		login_info = false;
+		user_add.setEnabled(login_info);
+		user_update.setEnabled(login_info);
+		book_add.setEnabled(login_info);
+		book_delete.setEnabled(login_info);
+		book_lend.setEnabled(login_info);
+		search_info.setEnabled(login_info);
+		delay_info.setEnabled(login_info);
+		book_topten.setEnabled(login_info);
+		logout.setEnabled(login_info);
+		loginView();
+	}
+	
+	//관리자 회원가입 화면 메서드
+	public void adminAddView() {
+		p_main = new Panel(new BorderLayout());
+		Panel p_main_north = new Panel(new GridLayout(2, 1, 10, 10));
+		Panel p_main_east = new Panel(new GridLayout(1, 1, 10, 10));
+		Panel p_main_west = new Panel(new GridLayout(1, 1, 10, 10));
+		Panel p_main_south = new Panel(new BorderLayout(10, 10));
+		Panel p_main_south_center = new Panel(new GridLayout(3, 5, 10, 10));
+		Panel p_main_center = new Panel(new GridLayout(4, 2, 10, 10));
+		
+		lb_admin_add_title = new Label("회원가입", Label.CENTER);
+		lb_admin_add_id = new Label("ID   : ");
+		lb_admin_add_pw = new Label("PW : ");
+		lb_admin_add_key = new Label("Admin key : ");
+		lb_admin_add_msg = new Label("", Label.CENTER);
+		tf_admin_add_id = new TextField("");
+		tf_admin_add_pw = new TextField("");
+		tf_admin_add_key = new TextField("");
+		tf_admin_add_pw.setEchoChar('*');
+		tf_admin_add_key.setEchoChar('*');
+		bt_admin_add = new Button("회원가입");
+		bt_admin_add_home = new Button("처음으로");
+		
+		p_main_north.add(lb_admin_add_title);
+		p_main_north.add(new Label());
+		p_main_east.add(new Label("                                                           "));
+		p_main_west.add(new Label("                                                           "));
+		p_main_south_center.add(new Label());		
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(bt_admin_add);
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(new Label());
+		p_main_south_center.add(bt_admin_add_home);
+		
+		p_main_south.add(lb_admin_add_msg, "North");
+		p_main_south.add(p_main_south_center);
+		
+		p_main_center.add(lb_admin_add_id);
+		p_main_center.add(tf_admin_add_id);
+		p_main_center.add(lb_admin_add_pw);
+		p_main_center.add(tf_admin_add_pw);
+		p_main_center.add(lb_admin_add_key);
+		p_main_center.add(tf_admin_add_key);
+		
+		p_main.add(p_main_center, "Center");
+		p_main.add(p_main_north, "North");
+		p_main.add(p_main_east, "East");
+		p_main.add(p_main_west, "West");
+		p_main.add(p_main_south, "South");
+		
+		this.add(p_main);
+		
+		bt_admin_add.addActionListener(this);
+		bt_admin_add_home.addActionListener(this);
+	}
+	
+	//회원가입 메서드
+	public void adminAdd() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+	    String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	    String user = "scott";
+	    String pwd = "1234";
+	    Connection con = DriverManager.getConnection(url, user, pwd);
+	    sql = "select * from admin where admin_id = ?";
+	    ps = con.prepareStatement(sql);
+	    ps.setString(1, tf_admin_add_id.getText());
+	    rs = ps.executeQuery();
+	    if(rs.next()) {
+	    	if(tf_admin_add_id.getText().equals("") || tf_admin_add_pw.getText().equals("") || tf_admin_add_key.getText().equals("")) {
+	    		lb_admin_add_msg.setText("입력 정보가 모두 입려되지 않았습니다. 입력 정보를 확인해주세요.");	    			    		
+	    	}else {
+	    		if(tf_admin_add_key.getText().equals("1234")) {
+	    			lb_admin_add_msg.setText("중복된 ID입니다.");	    		
+	    		}else {
+	    			lb_admin_add_msg.setText("관리자 키를 잘못 입력하였습니다. 관리자 키를 확인해주세요.");	    			    		
+	    		}	    		
+	    	}
+	    }else {
+	    	if(tf_admin_add_id.getText().equals("") || tf_admin_add_pw.getText().equals("") || tf_admin_add_key.getText().equals("")) {
+	    		lb_admin_add_msg.setText("입력 정보가 모두 입려되지 않았습니다. 입력 정보를 확인해주세요.");	    			    		
+	    	}else {
+	    		if(tf_admin_add_key.getText().equals("1234")) {
+	    			sql = "insert into admin values (?, ?)";
+	    			ps = con.prepareStatement(sql);
+	    			ps.setString(1, tf_admin_add_id.getText());
+	    			ps.setString(2, tf_admin_add_pw.getText());
+	    			ps.execute();
+	    			tf_admin_add_id.setText("");
+	    			tf_admin_add_pw.setText("");
+	    			tf_admin_add_key.setText(""); 			
+	    			lb_admin_add_msg.setText("회원가입이 완료되었습니다.");	    			    			    		
+	    		}else {
+	    			lb_admin_add_msg.setText("관리자 키를 잘못 입력하였습니다. 관리자 키를 확인해주세요.");	    			    		
+	    		}    			    		
+	    	}
+	    }
+	    rs.close();
+	    ps.close();
+	    con.close();
 	}
 	
 	//사용자 등록 현황 메서드
@@ -1139,7 +1405,7 @@ public class BookManagement extends Frame implements ActionListener {
 	}
 	
 	public static void main(String[] args) throws Exception{
-		BookManagement bm = new BookManagement();
+		BookManagement bm = new BookManagement(false);
 		bm.setSize(600,400);
 		bm.setVisible(true);
 		bm.setResizable(false);
